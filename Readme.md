@@ -41,6 +41,11 @@ limit.get(function(err, limit){
 });
 ```
 
+## Options
+
+ - `id` the identifier to limit against (typically a user id)
+ - `db` redis connection instance
+
 # License
 
   MIT
