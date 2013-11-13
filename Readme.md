@@ -32,12 +32,6 @@ limit.get(function(err, limit){
   var after = limit.reset - (Date.now() / 1000) | 0;
   res.set('Retry-After', after);
   res.send(429, 'Rate limit exceeded, retry in ' + ms(delta, { long: true }));
-  
-  log.warn('ratelimit exceeded', {
-    after: after,
-    app_id: req.oauthAppId,
-    user_id: id
-  });
 });
 ```
 
