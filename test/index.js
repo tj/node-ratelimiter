@@ -86,4 +86,19 @@ describe('Limiter', function(){
       })
     })
   })
+
+  describe('when multiple successive calls are made', function(){
+    it('the next calls should not create again the limiter in Redis', function(done){
+      var limit = new Limiter({ duration: 10000, max: 2, id: 'something', db: db });
+      limit.get(function(err, res){
+        res.remaining.should.equal(1);
+      });
+
+      limit.get(function(err, res){
+        res.remaining.should.equal(0);
+        done();
+      });
+    });
+
+  })
 })
