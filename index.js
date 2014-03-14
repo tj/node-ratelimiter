@@ -72,11 +72,15 @@ Limiter.prototype.get = function(fn){
 
     db
     .multi()
-    .setex(count, s, max - 1)
-    .setex(limit, s, max)
-    .setex(reset, s, ex)
-    .exec(function(err){
+    .setnx(count, max - 1)
+    .setnx(reset, ex)
+    .setnx(limit, max)
+    .expire(count, s)
+    .expire(limit, s)
+    .expire(reset, s)
+    .exec(function(err, res){
       if (err) return fn(err);
+      if(!res[0]) return mget();
       fn(null, {
         total: max,
         remaining: max - 1,
@@ -107,9 +111,13 @@ Limiter.prototype.get = function(fn){
     });
   }
 
-  db.mget(count, limit, reset, function(err, res){
-    if (err) return fn(err);
-    if (!res[0]) return create();
-    decr(res);
-  });
+  function mget(){
+    db.mget(count, limit, reset, function(err, res){
+      if (err) return fn(err);
+      if (!res[0]) return create();
+      decr(res);
+    });
+  }
+
+  mget();
 };
