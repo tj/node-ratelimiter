@@ -75,16 +75,20 @@ Limiter.prototype.get = function(fn){
     .setnx(count, max - 1)
     .setnx(reset, ex)
     .setnx(limit, max)
-    .expire(count, s)
-    .expire(limit, s)
-    .expire(reset, s)
     .exec(function(err, res){
       if (err) return fn(err);
       if(!res[0]) return mget();
-      fn(null, {
-        total: max,
-        remaining: max - 1,
-        reset: ex
+      db
+      .multi()
+      .expire(count, s)
+      .expire(limit, s)
+      .expire(reset, s).exec(function (err) {
+        if (err) return fn(err);
+        fn(null, {
+          total: max,
+          remaining: max - 1,
+          reset: ex
+        });
       });
     });
   }
