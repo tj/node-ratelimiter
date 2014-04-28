@@ -118,7 +118,7 @@ Limiter.prototype.get = function(fn){
   function mget(){
     db.mget(count, limit, reset, function(err, res){
       if (err) return fn(err);
-      if (!res[0]) return create();
+      if (!res[0] && res[0] !== 0) return create();
       decr(res);
     });
   }
