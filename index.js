@@ -1,4 +1,3 @@
-
 /**
  * Module dependencies.
  */
@@ -37,7 +36,7 @@ function Limiter(opts) {
  * @api public
  */
 
-Limiter.prototype.inspect = function(){
+Limiter.prototype.inspect = function () {
   return '<Limiter id='
     + this.id + ', duration='
     + this.duration + ', max='
@@ -58,7 +57,7 @@ Limiter.prototype.inspect = function(){
  * @api public
  */
 
-Limiter.prototype.get = function(fn){
+Limiter.prototype.get = function (fn) {
   var count = this.prefix + 'count';
   var limit = this.prefix + 'limit';
   var reset = this.prefix + 'reset';
@@ -70,33 +69,33 @@ Limiter.prototype.get = function(fn){
   function create() {
     var ex = (Date.now() + duration) / 1000 | 0;
 
-    db
-    .multi()
-    .setnx(count, max - 1)
-    .setnx(reset, ex)
-    .setnx(limit, max)
-    .exec(function(err, res){
-      if (err) return fn(err);
-      if(!res[0]) return mget();
-      db
-      .multi()
-      .expire(count, s)
-      .expire(limit, s)
-      .expire(reset, s).exec(function (err) {
+    db.multi()
+      .setnx(count, max - 1)
+      .setnx(reset, ex)
+      .setnx(limit, max)
+      .exec(function (err, res) {
         if (err) return fn(err);
-        fn(null, {
-          total: max,
-          remaining: max - 1,
-          reset: ex
-        });
+        if (!res[0]) return mget();
+        db
+          .multi()
+          .expire(count, s)
+          .expire(limit, s)
+          .expire(reset, s).exec(function (err) {
+            if (err) return fn(err);
+            fn(null, {
+              total: max,
+              remaining: max - 1,
+              reset: ex
+            });
+          });
       });
-    });
   }
 
   function decr(res) {
     var n = ~~res[0];
     var max = ~~res[1];
     var ex = ~~res[2];
+    var countTtl = ~~res[3];
 
     if (n <= 0) return done();
 
@@ -108,19 +107,29 @@ Limiter.prototype.get = function(fn){
       });
     }
 
-    db.decr(count, function(err, res){
-      if (err) return fn(err);
-      n = ~~res;
-      done();
-    });
+    db.multi()
+      .set(count, n - 1, 'XX')
+      .pexpire(count, countTtl)
+      .exec(function (err, res) {
+        if (err) return fn(err);
+        if (!res[0]) return create();
+        // if res[0]
+        n = n - 1;
+        done();
+      });
   }
 
-  function mget(){
-    db.mget(count, limit, reset, function(err, res){
-      if (err) return fn(err);
-      if (!res[0] && res[0] !== 0) return create();
-      decr(res);
-    });
+  function mget() {
+    db.multi()
+      .get(count)
+      .get(limit)
+      .get(reset)
+      .pttl(count)
+      .exec(function (err, res) {
+        if (err) return fn(err);
+        if (!res[0] && res[0] !== 0) return create();
+        decr(res);
+      });
   }
 
   mget();
