@@ -1,4 +1,4 @@
-
+require('should');
 var Limiter = require('..');
 var redis = require('redis');
 
@@ -26,7 +26,7 @@ describe('Limiter', function(){
 
   describe('.remaining', function(){
     it('should represent the number of requests remaining in the reset period', function(done){
-      var limit = new Limiter({ max: 5, id: 'something', db: db });
+      var limit = new Limiter({ max: 5, duration: 100000, id: 'something', db: db });
       limit.get(function(err, res){
         res.remaining.should.equal(4);
         limit.get(function(err, res){
@@ -99,6 +99,19 @@ describe('Limiter', function(){
         done();
       });
     });
+  });
 
-  })
-})
+  describe('when trying to decrease before setting value', function(){
+    it('should create with ttl when trying to decrease', function(done){
+      var limit = new Limiter({ duration: 10000, max: 2, id: 'something', db: db });
+      db.setex('limit:something:count', -1, 1, function () {
+        limit.get(function(err, res){
+          limit.get(function(err, res) {
+            res.remaining.should.equal(0);
+            done();
+          });
+        });
+      });
+    });
+  });
+});
