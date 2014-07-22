@@ -2,6 +2,10 @@ require('should');
 var Limiter = require('..');
 var redis = require('redis');
 
+// Uncomment the following line if you want to see
+// debug logs from the node-redis module.
+//redis.debug_mode = true;
+
 var db = redis.createClient();
 
 describe('Limiter', function(){
@@ -12,7 +16,7 @@ describe('Limiter', function(){
       var args = keys.concat(done);
       db.del.apply(db, args);
     });
-  })
+  });
 
   describe('.total', function(){
     it('should represent the total limit per reset period', function(done){
@@ -20,9 +24,9 @@ describe('Limiter', function(){
       limit.get(function(err, res){
         res.total.should.equal(5);
         done();
-      })
-    })
-  })
+      });
+    });
+  });
 
   describe('.remaining', function(){
     it('should represent the number of requests remaining in the reset period', function(done){
@@ -34,11 +38,11 @@ describe('Limiter', function(){
           limit.get(function(err, res){
             res.remaining.should.equal(2);
             done();
-          })
-        })
-      })
-    })
-  })
+          });
+        });
+      });
+    });
+  });
 
   describe('.reset', function(){
     it('should represent the next reset time in UTC epoch seconds', function(done){
@@ -47,9 +51,9 @@ describe('Limiter', function(){
         var left = res.reset - (Date.now() / 1000);
         left.should.be.below(60);
         done();
-      })
-    })
-  })
+      });
+    });
+  });
 
   describe('when the limit is exceeded', function(){
     it('should retain .remaining at 0', function(done){
@@ -61,11 +65,11 @@ describe('Limiter', function(){
           limit.get(function(err, res){
             res.remaining.should.equal(0);
             done();
-          })
-        })
-      })
-    })
-  })
+          });
+        });
+      });
+    });
+  });
 
   describe('when the duration is exceeded', function(){
     it('should reset', function(done){
@@ -82,10 +86,10 @@ describe('Limiter', function(){
               done();
             });
           }, 3000);
-        })
-      })
-    })
-  })
+        });
+      });
+    });
+  });
 
   describe('when multiple successive calls are made', function(){
     it('the next calls should not create again the limiter in Redis', function(done){
@@ -112,6 +116,65 @@ describe('Limiter', function(){
           });
         });
       });
+    });
+  });
+
+  describe('when multiple concurrent clients modify the limit', function(){
+	  var clientsCount = 7,
+			  max = 5,
+			  left = max,
+			  limits = [];
+
+	  for (var i = 0; i < clientsCount; ++i) {
+		  limits.push(new Limiter({
+			  duration: 10000,
+			  max: max,
+			  id: 'something',
+			  db: redis.createClient()
+		  }));
+	  }
+
+	  it('should prevent race condition and properly set the expected value', function(done){
+		  var responses = [];
+
+		  function complete() {
+			  responses.push(arguments);
+
+			  if (responses.length == clientsCount) {
+				  // If there were any errors, report.
+				  var err = responses.some(function (res) {
+					  return res[0];
+				  });
+
+				  if (err) {
+					  done(err);
+				  } else {
+					  responses.forEach(function (res) {
+					    res[1].remaining.should.equal(--left < 1 ? 0 : left);
+					  });
+
+					  for (var i = max - 1; i < clientsCount; ++i) {
+						  responses[i][1].remaining.should.equal(0);
+					  }
+
+					  done();
+				  }
+			  }
+		  }
+
+		  // Warm up and prepare the data.
+		  limits[0].get(function (err, res) {
+			  if (err) {
+				  done(err);
+			  } else {
+				  res.remaining.should.equal(--left);
+
+				  // Simulate multiple concurrent requests.
+				  limits.forEach(function (limit) {
+		        limit.get(complete);
+				  });
+			  }
+		  });
     });
   });
 });

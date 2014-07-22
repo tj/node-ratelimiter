@@ -1,7 +1,10 @@
-
 # ratelimiter
 
-  Rate limiter for nodejs backed by redis.
+  Rate limiter for Node.js backed by Redis.
+
+## Requirements
+
+- Redis 2.6.12+.
 
 ## Installation
 
