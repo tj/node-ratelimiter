@@ -62,32 +62,27 @@ Limiter.prototype.get = function (fn) {
   var limit = this.prefix + 'limit';
   var reset = this.prefix + 'reset';
   var duration = this.duration;
-  var s = this.duration / 1000 | 0;
   var max = this.max;
   var db = this.db;
 
   function create() {
     var ex = (Date.now() + duration) / 1000 | 0;
 
-    db.multi()
-      .setnx(count, max - 1)
-      .setnx(reset, ex)
-      .setnx(limit, max)
+	  db.multi()
+      .set(count, max - 1, 'PX', duration, 'NX')
+      .set(limit, max, 'PX', duration, 'NX')
+      .set(reset, ex, 'PX', duration, 'NX')
       .exec(function (err, res) {
         if (err) return fn(err);
-        if (!res[0]) return mget();
-        db
-          .multi()
-          .expire(count, s)
-          .expire(limit, s)
-          .expire(reset, s).exec(function (err) {
-            if (err) return fn(err);
-            fn(null, {
-              total: max,
-              remaining: max - 1,
-              reset: ex
-            });
-          });
+			  // If the request has failed, it means the values already 
+			  // exist in which case we need to get the latest values.
+        if (!res || !res[0]) return mget();
+
+        fn(null, {
+          total: max,
+          remaining: max - 1,
+          reset: ex
+        });
       });
   }
 
@@ -95,7 +90,6 @@ Limiter.prototype.get = function (fn) {
     var n = ~~res[0];
     var max = ~~res[1];
     var ex = ~~res[2];
-    var countTtl = ~~res[3];
 
     if (n <= 0) return done();
 
@@ -108,28 +102,25 @@ Limiter.prototype.get = function (fn) {
     }
 
     db.multi()
-      .set(count, n - 1, 'XX')
-      .pexpire(count, countTtl)
+      .set(count, n - 1, 'PX', ex * 1000 - Date.now(), 'XX')
       .exec(function (err, res) {
         if (err) return fn(err);
-        if (!res[0]) return create();
-        // if res[0]
+        if (!res || !res[0]) return mget();
         n = n - 1;
         done();
       });
   }
 
   function mget() {
-    db.multi()
-      .get(count)
-      .get(limit)
-      .get(reset)
-      .pttl(count)
-      .exec(function (err, res) {
-        if (err) return fn(err);
-        if (!res[0] && res[0] !== 0) return create();
-        decr(res);
-      });
+	  db.watch(count, function (err) {
+		  if (err) return fn(err);
+		  db.mget(count, limit, reset, function (err, res) {
+			  if (err) return fn(err);
+			  if (!res[0] && res[0] !== 0) return create();
+
+			  decr(res);
+		  });
+	  });
   }
 
   mget();
