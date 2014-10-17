@@ -28,7 +28,7 @@ limit.get(function(err, limit){
 
   // all good
   debug('remaining %s/%s %s', limit.remaining, limit.total, id);
-  if (limit.remaining >= 0) return next();
+  if (limit.remaining) return next();
 
   // not good
   var delta = (limit.reset * 1000) - Date.now() | 0;
