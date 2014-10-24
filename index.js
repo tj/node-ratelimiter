@@ -69,7 +69,7 @@ Limiter.prototype.get = function (fn) {
     var ex = (Date.now() + duration) / 1000 | 0;
 
 	  db.multi()
-      .set(count, max - 1, 'PX', duration, 'NX')
+      .set(count, max, 'PX', duration, 'NX')
       .set(limit, max, 'PX', duration, 'NX')
       .set(reset, ex, 'PX', duration, 'NX')
       .exec(function (err, res) {
@@ -80,7 +80,7 @@ Limiter.prototype.get = function (fn) {
 
         fn(null, {
           total: max,
-          remaining: max - 1,
+          remaining: max,
           reset: ex
         });
       });

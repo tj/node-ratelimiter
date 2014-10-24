@@ -8,9 +8,9 @@ var redis = require('redis');
 
 var db = redis.createClient();
 
-describe('Limiter', function(){
-  beforeEach(function(done){
-    db.keys('limit:*', function(err, keys){
+describe('Limiter', function() {
+  beforeEach(function(done) {
+    db.keys('limit:*', function(err, keys) {
       if (err) return done(err);
       if (!keys.length) return done();
       var args = keys.concat(done);
@@ -18,25 +18,34 @@ describe('Limiter', function(){
     });
   });
 
-  describe('.total', function(){
-    it('should represent the total limit per reset period', function(done){
-      var limit = new Limiter({ max: 5, id: 'something', db: db });
-      limit.get(function(err, res){
+  describe('.total', function() {
+    it('should represent the total limit per reset period', function(done) {
+      var limit = new Limiter({
+        max: 5,
+        id: 'something',
+        db: db
+      });
+      limit.get(function(err, res) {
         res.total.should.equal(5);
         done();
       });
     });
   });
 
-  describe('.remaining', function(){
-    it('should represent the number of requests remaining in the reset period', function(done){
-      var limit = new Limiter({ max: 5, duration: 100000, id: 'something', db: db });
-      limit.get(function(err, res){
-        res.remaining.should.equal(4);
-        limit.get(function(err, res){
-          res.remaining.should.equal(3);
-          limit.get(function(err, res){
-            res.remaining.should.equal(2);
+  describe('.remaining', function() {
+    it('should represent the number of requests remaining in the reset period', function(done) {
+      var limit = new Limiter({
+        max: 5,
+        duration: 100000,
+        id: 'something',
+        db: db
+      });
+      limit.get(function(err, res) {
+        res.remaining.should.equal(5);
+        limit.get(function(err, res) {
+          res.remaining.should.equal(4);
+          limit.get(function(err, res) {
+            res.remaining.should.equal(3);
             done();
           });
         });
@@ -44,10 +53,15 @@ describe('Limiter', function(){
     });
   });
 
-  describe('.reset', function(){
-    it('should represent the next reset time in UTC epoch seconds', function(done){
-      var limit = new Limiter({ max: 5, duration: 60000, id: 'something', db: db });
-      limit.get(function(err, res){
+  describe('.reset', function() {
+    it('should represent the next reset time in UTC epoch seconds', function(done) {
+      var limit = new Limiter({
+        max: 5,
+        duration: 60000,
+        id: 'something',
+        db: db
+      });
+      limit.get(function(err, res) {
         var left = res.reset - (Date.now() / 1000);
         left.should.be.below(60);
         done();
@@ -55,14 +69,19 @@ describe('Limiter', function(){
     });
   });
 
-  describe('when the limit is exceeded', function(){
-    it('should retain .remaining at 0', function(done){
-      var limit = new Limiter({ max: 2, id: 'something', db: db });
-      limit.get(function(err, res){
-        res.remaining.should.equal(1);
-        limit.get(function(err, res){
-          res.remaining.should.equal(0);
-          limit.get(function(err, res){
+  describe('when the limit is exceeded', function() {
+    it('should retain .remaining at 0', function(done) {
+      var limit = new Limiter({
+        max: 2,
+        id: 'something',
+        db: db
+      });
+      limit.get(function(err, res) {
+        res.remaining.should.equal(2);
+        limit.get(function(err, res) {
+          res.remaining.should.equal(1);
+          limit.get(function(err, res) {
+            // function caller should reject this call
             res.remaining.should.equal(0);
             done();
           });
@@ -71,18 +90,24 @@ describe('Limiter', function(){
     });
   });
 
-  describe('when the duration is exceeded', function(){
-    it('should reset', function(done){
-      var limit = new Limiter({ duration: 2000, max: 2, id: 'something', db: db });
-      limit.get(function(err, res){
-        res.remaining.should.equal(1);
-        limit.get(function(err, res){
-          res.remaining.should.equal(0);
-          setTimeout(function(){
-            limit.get(function(err, res){
+  describe('when the duration is exceeded', function() {
+    it('should reset', function(done) {
+      this.timeout(5000);
+      var limit = new Limiter({
+        duration: 2000,
+        max: 2,
+        id: 'something',
+        db: db
+      });
+      limit.get(function(err, res) {
+        res.remaining.should.equal(2);
+        limit.get(function(err, res) {
+          res.remaining.should.equal(1);
+          setTimeout(function() {
+            limit.get(function(err, res) {
               var left = res.reset - (Date.now() / 1000);
               left.should.be.below(2);
-              res.remaining.should.equal(1);
+              res.remaining.should.equal(2);
               done();
             });
           }, 3000);
@@ -91,90 +116,105 @@ describe('Limiter', function(){
     });
   });
 
-  describe('when multiple successive calls are made', function(){
-    it('the next calls should not create again the limiter in Redis', function(done){
-      var limit = new Limiter({ duration: 10000, max: 2, id: 'something', db: db });
-      limit.get(function(err, res){
-        res.remaining.should.equal(1);
+  describe('when multiple successive calls are made', function() {
+    it('the next calls should not create again the limiter in Redis', function(done) {
+      var limit = new Limiter({
+        duration: 10000,
+        max: 2,
+        id: 'something',
+        db: db
+      });
+      limit.get(function(err, res) {
+        res.remaining.should.equal(2);
       });
 
-      limit.get(function(err, res){
-        res.remaining.should.equal(0);
+      limit.get(function(err, res) {
+        res.remaining.should.equal(1);
         done();
       });
     });
   });
 
-  describe('when trying to decrease before setting value', function(){
-    it('should create with ttl when trying to decrease', function(done){
-      var limit = new Limiter({ duration: 10000, max: 2, id: 'something', db: db });
-      db.setex('limit:something:count', -1, 1, function () {
-        limit.get(function(err, res){
+  describe('when trying to decrease before setting value', function() {
+    it('should create with ttl when trying to decrease', function(done) {
+      var limit = new Limiter({
+        duration: 10000,
+        max: 2,
+        id: 'something',
+        db: db
+      });
+      db.setex('limit:something:count', -1, 1, function() {
+        limit.get(function(err, res) {
+          res.remaining.should.equal(2);
           limit.get(function(err, res) {
-            res.remaining.should.equal(0);
-            done();
+            res.remaining.should.equal(1);
+            limit.get(function(err, res) {
+              res.remaining.should.equal(0);
+              done();
+            });
           });
         });
       });
     });
   });
 
-  describe('when multiple concurrent clients modify the limit', function(){
-	  var clientsCount = 7,
-			  max = 5,
-			  left = max,
-			  limits = [];
+  describe('when multiple concurrent clients modify the limit', function() {
+    var clientsCount = 7,
+      max = 5,
+      left = max,
+      limits = [];
 
-	  for (var i = 0; i < clientsCount; ++i) {
-		  limits.push(new Limiter({
-			  duration: 10000,
-			  max: max,
-			  id: 'something',
-			  db: redis.createClient()
-		  }));
-	  }
+    for (var i = 0; i < clientsCount; ++i) {
+      limits.push(new Limiter({
+        duration: 10000,
+        max: max,
+        id: 'something',
+        db: redis.createClient()
+      }));
+    }
 
-	  it('should prevent race condition and properly set the expected value', function(done){
-		  var responses = [];
+    it('should prevent race condition and properly set the expected value', function(done) {
+      var responses = [];
 
-		  function complete() {
-			  responses.push(arguments);
+      function complete() {
+        responses.push(arguments);
 
-			  if (responses.length == clientsCount) {
-				  // If there were any errors, report.
-				  var err = responses.some(function (res) {
-					  return res[0];
-				  });
+        if (responses.length == clientsCount) {
+          // If there were any errors, report.
+          var err = responses.some(function(res) {
+            return res[0];
+          });
 
-				  if (err) {
-					  done(err);
-				  } else {
-					  responses.forEach(function (res) {
-					    res[1].remaining.should.equal(--left < 1 ? 0 : left);
-					  });
+          if (err) {
+            done(err);
+          } else {
+            responses.forEach(function(res) {
+              res[1].remaining.should.equal(left < 0 ? 0 : left);
+              left--;
+            });
 
-					  for (var i = max - 1; i < clientsCount; ++i) {
-						  responses[i][1].remaining.should.equal(0);
-					  }
+            for (var i = max - 1; i < clientsCount; ++i) {
+              responses[i][1].remaining.should.equal(0);
+            }
 
-					  done();
-				  }
-			  }
-		  }
+            done();
+          }
+        }
+      }
 
-		  // Warm up and prepare the data.
-		  limits[0].get(function (err, res) {
-			  if (err) {
-				  done(err);
-			  } else {
-				  res.remaining.should.equal(--left);
+      // Warm up and prepare the data.
+      limits[0].get(function(err, res) {
+        if (err) {
+          done(err);
+        } else {
+          res.remaining.should.equal(left--);
 
-				  // Simulate multiple concurrent requests.
-				  limits.forEach(function (limit) {
-		        limit.get(complete);
-				  });
-			  }
-		  });
+          // Simulate multiple concurrent requests.
+          limits.forEach(function(limit) {
+            limit.get(complete);
+          });
+        }
+      });
     });
   });
 });
