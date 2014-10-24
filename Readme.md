@@ -23,11 +23,11 @@ limit.get(function(err, limit){
   if (err) return next(err);
 
   res.set('X-RateLimit-Limit', limit.total);
-  res.set('X-RateLimit-Remaining', limit.remaining);
+  res.set('X-RateLimit-Remaining', limit.remaining - 1);
   res.set('X-RateLimit-Reset', limit.reset);
 
   // all good
-  debug('remaining %s/%s %s', limit.remaining, limit.total, id);
+  debug('remaining %s/%s %s', limit.remaining - 1, limit.total, id);
   if (limit.remaining) return next();
 
   // not good
@@ -37,6 +37,11 @@ limit.get(function(err, limit){
   res.send(429, 'Rate limit exceeded, retry in ' + ms(delta, { long: true }));
 });
 ```
+
+## Result Object
+ - `total` `max` value
+ - `remaining` number of calls left in current `duration` without decreasing current `get` 
+ - `reset` time in milliseconds until the end of current `duration`
 
 ## Options
 
