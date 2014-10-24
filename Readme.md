@@ -39,16 +39,16 @@ limit.get(function(err, limit){
 ```
 
 ## Result Object
- - `total` `max` value
- - `remaining` number of calls left in current `duration` without decreasing current `get` 
- - `reset` time in milliseconds until the end of current `duration`
+ - `total` - `max` value
+ - `remaining` - number of calls left in current `duration` without decreasing current `get` 
+ - `reset` - time in milliseconds until the end of current `duration`
 
 ## Options
 
- - `id` the identifier to limit against (typically a user id)
- - `db` redis connection instance
- - `max` max requests within `duration` [2500]
- - `duration` of limit in milliseconds [3600000]
+ - `id` - the identifier to limit against (typically a user id)
+ - `db` - redis connection instance
+ - `max` - max requests within `duration` [2500]
+ - `duration` - of limit in milliseconds [3600000]
 
 # License
 
