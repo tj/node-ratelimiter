@@ -69,12 +69,12 @@ Limiter.prototype.get = function (fn) {
     var ex = (Date.now() + duration) / 1000 | 0;
 
 	  db.multi()
-      .set(count, max, 'PX', duration, 'NX')
-      .set(limit, max, 'PX', duration, 'NX')
-      .set(reset, ex, 'PX', duration, 'NX')
+      .set([count, max, 'PX', duration, 'NX'])
+      .set([limit, max, 'PX', duration, 'NX'])
+      .set([reset, ex, 'PX', duration, 'NX'])
       .exec(function (err, res) {
         if (err) return fn(err);
-			  // If the request has failed, it means the values already 
+			  // If the request has failed, it means the values already
 			  // exist in which case we need to get the latest values.
         if (!res || !res[0]) return mget();
 
@@ -102,7 +102,7 @@ Limiter.prototype.get = function (fn) {
     }
 
     db.multi()
-      .set(count, n - 1, 'PX', ex * 1000 - Date.now(), 'XX')
+      .set([count, n - 1, 'PX', ex * 1000 - Date.now(), 'XX'])
       .exec(function (err, res) {
         if (err) return fn(err);
         if (!res || !res[0]) return mget();
@@ -112,9 +112,9 @@ Limiter.prototype.get = function (fn) {
   }
 
   function mget() {
-	  db.watch(count, function (err) {
+	  db.watch([count], function (err) {
 		  if (err) return fn(err);
-		  db.mget(count, limit, reset, function (err, res) {
+		  db.mget([count, limit, reset], function (err, res) {
 			  if (err) return fn(err);
 			  if (!res[0] && res[0] !== 0) return create();
 
