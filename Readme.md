@@ -2,6 +2,9 @@
 
   Rate limiter for Node.js backed by Redis.
 
+## Release Notes
+[v2.0.0](https://github.com/tj/node-ratelimiter/tree/v2.0.0) - **API CHANGE** - Change `remaining` to include current call instead of decreasing it. Decreasing caused an off-by-one problem and caller could not distinguish between last legit call and a rejected call.
+
 ## Requirements
 
 - Redis 2.6.12+.
