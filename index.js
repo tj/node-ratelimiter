@@ -76,7 +76,7 @@ Limiter.prototype.get = function (fn) {
         if (err) return fn(err);
 			  // If the request has failed, it means the values already
 			  // exist in which case we need to get the latest values.
-        if (!res || !res[0]) return mget();
+        if (!res || !res[0] || !res[0][1]) return mget();
 
         fn(null, {
           total: max,
