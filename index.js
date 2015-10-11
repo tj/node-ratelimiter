@@ -74,9 +74,17 @@ Limiter.prototype.get = function (fn) {
       .set([reset, ex, 'PX', duration, 'NX'])
       .exec(function (err, res) {
         if (err) return fn(err);
-			  // If the request has failed, it means the values already
-			  // exist in which case we need to get the latest values.
-        if (!res || !res[0] || !res[0][1]) return mget();
+
+        // If the request has failed, it means the values already
+        // exist in which case we need to get the latest values.
+        if (!res[0]) return mget();
+        if (Array.isArray(res[0])) {
+          // ioredis
+          if (!res[0][1]) return mget();
+        } else {
+          // node_redis
+          if (!res[0]) return mget();
+        }
 
         fn(null, {
           total: max,
