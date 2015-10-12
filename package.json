@@ -11,9 +11,10 @@
   ],
   "dependencies": {},
   "devDependencies": {
+    "fakeredis": "0.3.3",
     "mocha": "*",
-    "should": "*",
-    "redis": "0.10.2"
+    "redis": "0.10.2",
+    "should": "*"
   },
   "license": "MIT",
   "contributors": [

@@ -1,6 +1,6 @@
 require('should');
 var Limiter = require('..');
-var redis = require('redis');
+var redis = require('fakeredis');
 
 // Uncomment the following line if you want to see
 // debug logs from the node-redis module.
