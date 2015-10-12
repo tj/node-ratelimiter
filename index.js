@@ -74,9 +74,10 @@ Limiter.prototype.get = function (fn) {
       .set([reset, ex, 'PX', duration, 'NX'])
       .exec(function (err, res) {
         if (err) return fn(err);
-			  // If the request has failed, it means the values already
-			  // exist in which case we need to get the latest values.
-        if (!res || !res[0]) return mget();
+
+        // If the request has failed, it means the values already
+        // exist in which case we need to get the latest values.
+        if (isFirstReplyNull(res)) return mget();
 
         fn(null, {
           total: max,
@@ -105,7 +106,7 @@ Limiter.prototype.get = function (fn) {
       .set([count, n - 1, 'PX', ex * 1000 - Date.now(), 'XX'])
       .exec(function (err, res) {
         if (err) return fn(err);
-        if (!res || !res[0]) return mget();
+        if (isFirstReplyNull(res)) return mget();
         n = n - 1;
         done();
       });
@@ -125,3 +126,24 @@ Limiter.prototype.get = function (fn) {
 
   mget();
 };
+
+/**
+ * Check whether the first item of multi replies is null,
+ * works with ioredis and node_redis
+ *
+ * @param {Array} replies
+ * @return {Boolean}
+ * @api private
+ */
+
+function isFirstReplyNull(replies) {
+  if (!replies) {
+    return true;
+  }
+
+  return Array.isArray(replies[0]) ?
+    // ioredis
+    !replies[0][1] :
+    // node_redis
+    !replies[0];
+}

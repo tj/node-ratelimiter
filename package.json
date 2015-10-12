@@ -1,6 +1,6 @@
 {
   "name": "ratelimiter",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "repository": "visionmedia/node-ratelimiter",
   "description": "abstract rate limiter backed by redis",
   "keywords": [
@@ -11,9 +11,10 @@
   ],
   "dependencies": {},
   "devDependencies": {
+    "ioredis": "1.9.0",
     "mocha": "*",
-    "should": "*",
-    "redis": "0.10.2"
+    "redis": "0.10.2",
+    "should": "*"
   },
   "license": "MIT",
   "contributors": [
