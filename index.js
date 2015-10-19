@@ -91,6 +91,7 @@ Limiter.prototype.get = function (fn) {
     var n = ~~res[0];
     var max = ~~res[1];
     var ex = ~~res[2];
+    var dateNow = Date.now();
 
     if (n <= 0) return done();
 
@@ -103,7 +104,9 @@ Limiter.prototype.get = function (fn) {
     }
 
     db.multi()
-      .set([count, n - 1, 'PX', ex * 1000 - Date.now(), 'XX'])
+      .set([count, n - 1, 'PX', ex * 1000 - dateNow, 'XX'])
+      .pexpire([limit, ex * 1000 - dateNow])
+      .pexpire([reset, ex * 1000 - dateNow])
       .exec(function (err, res) {
         if (err) return fn(err);
         if (isFirstReplyNull(res)) return mget();
