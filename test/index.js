@@ -133,6 +133,30 @@ var Limiter = require('..');
           done();
         });
       });
+      it('updating the count should keep all TTLs in sync', function(done) {
+        var limit = new Limiter({
+          duration: 10000,
+          max: 2,
+          id: 'something',
+          db: db
+        });
+        limit.get(function(err, res) {}); // All good here.
+        limit.get(function(err, res) {
+          db.multi()
+            .pttl(['limit:something:count'])
+            .pttl(['limit:something:limit'])
+            .pttl(['limit:something:reset'])
+            .exec(function (err, res) {
+              if (err) return done(err);
+              var ttlCount = (typeof res[0] === 'number') ? res[0] : res[0][1];
+              var ttlLimit = (typeof res[1] === 'number') ? res[1] : res[1][1];
+              var ttlReset = (typeof res[2] === 'number') ? res[2] : res[2][1];
+              ttlLimit.should.equal(ttlCount);
+              ttlReset.should.equal(ttlCount);
+              done();
+            });
+        });
+      });
     });
 
     describe('when trying to decrease before setting value', function() {
