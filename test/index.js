@@ -68,6 +68,33 @@ var Limiter = require('..');
         });
       });
     });
+    
+    describe('reset', function() {
+      it('should reset limiter manually', function(done) {
+        var limit = new Limiter({
+          max: 5,
+          duration: 60000,
+          id: 'something',
+          db: db
+        });
+        limit.get(function(err, res) {
+          res.remaining.should.equal(5);
+          limit.get(function(err,res){
+            res.remaining.should.equal(4);
+            limit.get(function(err,res){
+              res.remaining.should.equal(3);
+              limit.reset(function(err,res){
+                var left = res.reset - (Date.now() / 1000);
+                left.should.be.belowOrEqual(60);
+                res.total.should.equal(5);
+                res.remaining.should.equal(5);
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
 
     describe('when the limit is exceeded', function() {
       it('should retain .remaining at 0', function(done) {

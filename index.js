@@ -131,6 +131,41 @@ Limiter.prototype.get = function (fn) {
 };
 
 /**
+ * reset rate limit
+ *
+ * @api public
+ */
+Limiter.prototype.reset = function(fn){
+  
+  var count = this.prefix + 'count';
+  var limit = this.prefix + 'limit';
+  var reset = this.prefix + 'reset';
+  var duration = this.duration;
+  var max = this.max;
+  var db = this.db;
+  
+  function recreate() {
+    var ex = (Date.now() + duration) / 1000 | 0;
+
+	  db.multi()
+      .set([count, max, 'PX', duration, 'NX'])
+      .set([limit, max, 'PX', duration, 'NX'])
+      .set([reset, ex, 'PX', duration, 'NX'])
+      .exec(function (err, res) {
+        if (err) return fn(err);
+
+        fn(null, {
+          total: max,
+          remaining: max,
+          reset: ex
+        });
+      });
+  }
+  
+  recreate();
+}
+
+/**
  * Check whether the first item of multi replies is null,
  * works with ioredis and node_redis
  *
