@@ -2,6 +2,8 @@
 
   Rate limiter for Node.js backed by Redis.
 
+[![Build Status](https://travis-ci.org/tj/node-ratelimiter.svg)](https://travis-ci.org/tj/node-ratelimiter)
+
 ## Release Notes
 [v2.1.1](https://github.com/tj/node-ratelimiter/tree/v2.1.1) - [#13](/../../pull/13) by [@kwizzn](https://github.com/kwizzn) - Fixes out-of-sync TTLs after running decr()
 
@@ -49,7 +51,7 @@ limit.get(function(err, limit){
 
 ## Result Object
  - `total` - `max` value
- - `remaining` - number of calls left in current `duration` without decreasing current `get` 
+ - `remaining` - number of calls left in current `duration` without decreasing current `get`
  - `reset` - time in milliseconds until the end of current `duration`
 
 ## Options
