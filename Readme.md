@@ -5,6 +5,8 @@
 [![Build Status](https://travis-ci.org/tj/node-ratelimiter.svg)](https://travis-ci.org/tj/node-ratelimiter)
 
 ## Release Notes
+[v2.1.2](https://github.com/tj/node-ratelimiter/tree/v2.1.2) - [#17](/../../pull/17) by [@waleedsamy](https://github.com/waleedsamy) - Add Travis CI support
+
 [v2.1.1](https://github.com/tj/node-ratelimiter/tree/v2.1.1) - [#13](/../../pull/13) by [@kwizzn](https://github.com/kwizzn) - Fixes out-of-sync TTLs after running decr()
 
 [v2.1.0](https://github.com/tj/node-ratelimiter/tree/v2.1.0) - [#12](/../../pull/12) by [@luin](https://github.com/luin) - Adding support for ioredis
