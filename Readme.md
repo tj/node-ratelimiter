@@ -1,6 +1,6 @@
 # ratelimiter
 
-  Rate limiter for Node.js backed by Redis.
+  Rate limiter for Node.js.
 
 [![Build Status](https://travis-ci.org/tj/node-ratelimiter.svg)](https://travis-ci.org/tj/node-ratelimiter)
 
@@ -31,7 +31,7 @@ $ npm install ratelimiter
 
 ```js
 var id = req.user._id;
-var limit = new Limiter({ id: id, db: db });
+var limit = new Limiter({ id: id }, redisAdapter(redis.createClient()));
 limit.get(function(err, limit){
   if (err) return next(err);
 
@@ -58,10 +58,47 @@ limit.get(function(err, limit){
 
 ## Options
 
- - `id` - the identifier to limit against (typically a user id)
- - `db` - redis connection instance
- - `max` - max requests within `duration` [2500]
- - `duration` - of limit in milliseconds [3600000]
+- `id` - the identifier to limit against (typically a user id)
+ - `max [Number]` - max requests within `duration` [2500]
+ - `duration [Number]` - of limit in milliseconds [3600000]
+
+# Adapters
+
+## RedisAdapter
+
+Initialize a new adapter with:
+
+```js
+var adapter = redisAdapter(redis.createClient());
+```
+
+## MemoryAdapter
+
+This adapter is meant to be used in dev. **Do not use it in production**.
+
+Initialize a new adapter with:
+
+```js
+var adapter = memoryAdapter();
+```
+
+## Custom adapter
+
+The adapter passed to the `Limiter` constructor should be a function accepting the following parameters:
+- `id [String]`: the identifier being limited (for example: an ip address)
+- `max [Number]`: the number of calls accepted before being rate-limited
+- `duration [Number]`: the duration after which the counter will be reset
+
+The function should return an object with the following methods:
+- `newHit()`: registers a new hit and returns the result object
+  - `total` - `max` value
+  - `remaining` - number of calls left in current `duration` without decreasing current `get`
+  - `reset` - time in milliseconds until the end of current `duration`
+
+- `get()`: returns the result object without increasing the hit counter
+  - `total` - `max` value
+  - `remaining` - number of calls left in current `duration` without decreasing current `get`
+  - `reset` - time in milliseconds until the end of current `duration`
 
 # License
 
