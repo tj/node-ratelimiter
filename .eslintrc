@@ -1,0 +1,23 @@
+{
+    "extends": "airbnb/base",
+    "env": {
+        "mocha": true,
+    },
+    "rules": {
+        "indent": [2, 4],
+        "no-multiple-empty-lines": [2, {'max': 2}],
+    },
+    "globals": {
+      "after": false,
+      "afterEach": false,
+      "assert": false,
+      "before": false,
+      "beforeEach": false,
+      "db": false,
+      "describe": false,
+      "document": false,
+      "fixtureLoader": false,
+      "it": false,
+      "request": false,
+    }
+}
