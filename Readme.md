@@ -82,6 +82,16 @@ Initialize a new adapter with:
 var adapter = memoryAdapter();
 ```
 
+## NullAdapter
+
+This adapter is meant to be used for tests only when you want to disable the rate limiting.
+
+Initialize a new adapter with:
+
+```js
+var adapter = nullAdapter();
+```
+
 ## Custom adapter
 
 The adapter passed to the `Limiter` constructor should be a function accepting the following parameters:
