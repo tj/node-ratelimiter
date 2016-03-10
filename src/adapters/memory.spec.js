@@ -41,7 +41,7 @@ describe('MemoryAdapter', () => {
                 adapter.newHit()
                     .then(res => {
                         const left = res.reset - (Date.now() / 1000);
-                        left.should.be.below(60);
+                        left.should.be.within(0, 60);
                     })
                     .then(done)
                     .catch(done);
