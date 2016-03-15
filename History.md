@@ -1,6 +1,6 @@
 # ratelimiter Change Log.
 
-## 2.0.0 / 2016-03-01
+## 3.0.0 / 2016-03-01
 * rewritten using es6 with babel
 * added eslint airbnb configuration
 * introduced adapters (redis, memory and null)
