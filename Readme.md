@@ -1,4 +1,4 @@
-# ratelimiter
+# node-ratelimiter
 
   Rate limiter for Node.js.
 
@@ -24,7 +24,7 @@
 ## Installation
 
 ```
-$ npm install ratelimiter
+$ npm install node-ratelimiter
 ```
 
 ## Example
