@@ -32,9 +32,12 @@ $ npm install node-ratelimiter
  Example Connect middleware implementation limiting against a `user._id`:
 
 ```js
-var id = req.user._id;
-var limit = new Limiter({ id: id }, redisAdapter(redis.createClient()));
-limit.get(function(err, limit){
+var Limiter = require('node-ratelimiter');
+var redisAdapter = Limiter.redisAdapter;
+
+var limiter = new Limiter({ id: req.user._id }, redisAdapter(redis.createClient()));
+
+limiter.newHit(function(err, limit){
   if (err) return next(err);
 
   res.set('X-RateLimit-Limit', limit.total);
@@ -71,6 +74,10 @@ limit.get(function(err, limit){
 Initialize a new adapter with:
 
 ```js
+var redis = require('redis');
+var Limiter = require('node-ratelimiter');
+var redisAdapter = Limiter.redisAdapter;
+
 var adapter = redisAdapter(redis.createClient());
 ```
 
@@ -81,6 +88,9 @@ This adapter is meant to be used in dev. **Do not use it in production**.
 Initialize a new adapter with:
 
 ```js
+var Limiter = require('node-ratelimiter');
+var memoryAdapter = Limiter.memoryAdapter;
+
 var adapter = memoryAdapter();
 ```
 
@@ -91,6 +101,9 @@ This adapter is meant to be used for tests only when you want to disable the rat
 Initialize a new adapter with:
 
 ```js
+var Limiter = require('node-ratelimiter');
+var nullAdapter = Limiter.nullAdapter;
+
 var adapter = nullAdapter();
 ```
 
