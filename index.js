@@ -68,7 +68,7 @@ Limiter.prototype.get = function (fn) {
   function create() {
     var ex = (Date.now() + duration) / 1000 | 0;
 
-	  db.multi()
+    db.multi()
       .set([count, max, 'PX', duration, 'NX'])
       .set([limit, max, 'PX', duration, 'NX'])
       .set([reset, ex, 'PX', duration, 'NX'])
@@ -116,15 +116,15 @@ Limiter.prototype.get = function (fn) {
   }
 
   function mget() {
-	  db.watch([count], function (err) {
-		  if (err) return fn(err);
-		  db.mget([count, limit, reset], function (err, res) {
-			  if (err) return fn(err);
-			  if (!res[0] && res[0] !== 0) return create();
+    db.watch([count], function (err) {
+      if (err) return fn(err);
+      db.mget([count, limit, reset], function (err, res) {
+        if (err) return fn(err);
+        if (!res[0] && res[0] !== 0) return create();
 
-			  decr(res);
-		  });
-	  });
+        decr(res);
+      });
+    });
   }
 
   mget();
