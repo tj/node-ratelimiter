@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.org/tj/node-ratelimiter.svg)](https://travis-ci.org/tj/node-ratelimiter)
 
 ## Release Notes
-[v2.1.3](https://github.com/tj/node-ratelimiter/tree/v2.1.3) - [#22](/../../pull/22) by [@coderhaoxin](https://github.com/coderhaoxin) - Versions bump
+[v2.1.3](https://github.com/tj/node-ratelimiter/tree/v2.1.3) - [#22](/../../pull/22) by [@coderhaoxin](https://github.com/coderhaoxin) - Dev dependencies versions bump
 
 [v2.1.2](https://github.com/tj/node-ratelimiter/tree/v2.1.2) - [#17](/../../pull/17) by [@waleedsamy](https://github.com/waleedsamy) - Add Travis CI support
 
