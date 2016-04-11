@@ -11,9 +11,9 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "ioredis": "^1.15.1",
+    "ioredis": "1.15.1",
     "mocha": "*",
-    "redis": "^2.6.0-1",
+    "redis": "2.6.0-1",
     "should": "*"
   },
   "license": "MIT",
