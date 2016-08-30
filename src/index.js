@@ -1,4 +1,4 @@
-import 'babel-polyfill';
+// import 'babel-polyfill';
 import nullAdapterFactory from './adapters/null';
 import memoryAdapterFactory from './adapters/memory';
 import redisAdapterFactory from './adapters/redis';

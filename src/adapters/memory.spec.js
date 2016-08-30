@@ -1,11 +1,25 @@
 import 'should';
 import adapterFactory from './memory';
+import sinon from 'sinon';
 
 describe('MemoryAdapter', () => {
+    let sandbox;
+    beforeEach(() => {
+        sandbox = sinon.sandbox.create();
+    });
+
+    it('should create a new entry executing id() in global dictionnary', done => {
+        const idSpy = sandbox.spy();
+        adapterFactory()(idSpy, 5, 2000).get();
+
+        idSpy.called.should.be.true();
+        done();
+    });
+
     describe('.newHit', () => {
         describe('.total', () => {
             it('should represent the total limit per reset period', done => {
-                const adapter = adapterFactory()('foo', 5, 100000);
+                const adapter = adapterFactory()(() => 'foo', 5, 100000);
                 adapter.newHit()
                 .then(res => {
                     res.total.should.equal(5);
@@ -17,7 +31,7 @@ describe('MemoryAdapter', () => {
 
         describe('.remaining', () => {
             it('should represent the number of requests remaining in the reset period', done => {
-                const adapter = adapterFactory()('foo', 5, 100000);
+                const adapter = adapterFactory()(() => 'foo', 5, 100000);
                 adapter.newHit()
                     .then(res => {
                         res.remaining.should.equal(5);
@@ -37,7 +51,7 @@ describe('MemoryAdapter', () => {
 
         describe('.reset', () => {
             it('should represent the next reset time in UTC epoch seconds', done => {
-                const adapter = adapterFactory()('foo', 5, 60000);
+                const adapter = adapterFactory()(() => 'foo', 5, 60000);
                 adapter.newHit()
                     .then(res => {
                         const left = res.reset - (Date.now() / 1000);
@@ -50,7 +64,7 @@ describe('MemoryAdapter', () => {
 
         describe('when the limit is exceeded', () => {
             it('should retain .remaining at 0', done => {
-                const adapter = adapterFactory()('foo', 2, 10000);
+                const adapter = adapterFactory()(() => 'foo', 2, 10000);
                 adapter.newHit()
                     .then(res => {
                         res.remaining.should.equal(2);
@@ -72,7 +86,7 @@ describe('MemoryAdapter', () => {
         describe('when the duration is exceeded', function testDuration() {
             it('should reset', done => {
                 this.timeout(5000);
-                const adapter = adapterFactory()('foo', 2, 1000);
+                const adapter = adapterFactory()(() => 'foo', 2, 2000);
                 adapter.newHit().then(res => {
                     res.remaining.should.equal(2);
                 })
@@ -92,5 +106,11 @@ describe('MemoryAdapter', () => {
                 .catch(done);
             });
         });
+    });
+
+    afterEach(() => {
+        if (sandbox) {
+            sandbox.restore();
+        }
     });
 });

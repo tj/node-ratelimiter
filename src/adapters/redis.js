@@ -24,10 +24,10 @@ function isFirstReplyNull(replies) {
 export default db => {
     assert(db, 'db required');
 
-    return (id, max, duration) => {
-        const countField = `limit:${id}:count`;
-        const limitField = `limit:${id}:limit`;
-        const resetField = `limit:${id}:reset`;
+    return (id, max, duration, ctx = {}) => {
+        const countField = `limit:${id(ctx)}:count`;
+        const limitField = `limit:${id(ctx)}:limit`;
+        const resetField = `limit:${id(ctx)}:reset`;
 
         const get = res => {
             if (!res[0] && res[0] !== 0) return null;

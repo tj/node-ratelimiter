@@ -1,15 +1,15 @@
 export default () => {
     const dictionary = [];
 
-    return (id, max, duration) => {
+    return (id, max, duration, ctx = {}) => {
         const create = dateNow => {
-            dictionary[id] = {
+            dictionary[id(ctx)] = {
                 remaining: max,
                 reset: (dateNow + duration) / 1000,
                 total: max,
             };
 
-            return dictionary[id];
+            return dictionary[id(ctx)];
         };
 
         const reset = (data, dateNow) => {
@@ -22,7 +22,7 @@ export default () => {
         return {
             newHit: () => new Promise(resolve => {
                 const dateNow = Date.now();
-                const data = dictionary[id];
+                const data = dictionary[id(ctx)];
 
                 if (!data) {
                     return resolve(create(dateNow));
@@ -42,7 +42,7 @@ export default () => {
 
             get: () => new Promise(resolve => {
                 const dateNow = Date.now();
-                const data = dictionary[id];
+                const data = dictionary[id(ctx)];
 
                 if (!data) {
                     return resolve(create(dateNow));

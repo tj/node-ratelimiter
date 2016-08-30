@@ -20,12 +20,12 @@ export default class Limiter {
     * @param {Object} getFn: the function which will be called to get the rate limiting data
     * @api public
     */
-    constructor(opts, adapterFactory = memoryAdapterFactory()) {
+    constructor(opts, adapterFactory = memoryAdapterFactory(), ctx = {}) {
         this.id = opts.id;
         assert(this.id, '.id required');
         this.max = opts.max || 2500;
         this.duration = opts.duration || 3600000;
-        this.adapter = adapterFactory(this.id, this.max, this.duration);
+        this.adapter = adapterFactory(this.id, this.max, this.duration, ctx);
     }
 
     inspect() {
