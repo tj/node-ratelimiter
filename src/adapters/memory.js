@@ -5,7 +5,7 @@ export default () => {
         const create = dateNow => {
             dictionary[id] = {
                 remaining: max,
-                reset: (dateNow + duration) / 1000 | 0,
+                reset: (dateNow + duration) / 1000,
                 total: max,
             };
 
@@ -14,7 +14,7 @@ export default () => {
 
         const reset = (data, dateNow) => {
             data.remaining = max;
-            data.reset = (dateNow + duration) / 1000 | 0;
+            data.reset = (dateNow + duration) / 1000;
 
             return data;
         };
