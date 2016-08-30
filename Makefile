@@ -14,4 +14,11 @@ build: ## Build the lib with babel
 		--out-dir lib/ \
 		src/
 
+watch: ## Watch source files and rebuild lib once changed
+	@./node_modules/.bin/babel \
+		--ignore *.spec.js \
+		--out-dir lib/ \
+		--watch \
+		src/
+
 .PHONY: test
