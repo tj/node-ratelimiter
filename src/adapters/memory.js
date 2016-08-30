@@ -1,15 +1,17 @@
 export default () => {
     const dictionary = [];
 
+    const getOrCall = (x, ctx) => typeof x === 'function' ? x(ctx) : x;
+
     return (id, max, duration, ctx = {}) => {
         const create = dateNow => {
-            dictionary[id(ctx)] = {
+            dictionary[getOrCall(id, ctx)] = {
                 remaining: max,
                 reset: (dateNow + duration) / 1000,
                 total: max,
             };
 
-            return dictionary[id(ctx)];
+            return dictionary[getOrCall(id, ctx)];
         };
 
         const reset = (data, dateNow) => {
@@ -22,18 +24,18 @@ export default () => {
         return {
             newHit: () => new Promise(resolve => {
                 const dateNow = Date.now();
-                const data = dictionary[id(ctx)];
+                const data = dictionary[getOrCall(id, ctx)];
 
                 if (!data) {
                     return resolve(create(dateNow));
                 }
 
-                if (data.remaining <= 0) {
-                    return resolve(data);
-                }
-
                 if (data.reset && (dateNow / 1000) > data.reset) {
                     return resolve(reset(data, dateNow));
+                }
+
+                if (data.remaining <= 0) {
+                    return resolve(data);
                 }
 
                 data.remaining--;
@@ -42,7 +44,7 @@ export default () => {
 
             get: () => new Promise(resolve => {
                 const dateNow = Date.now();
-                const data = dictionary[id(ctx)];
+                const data = dictionary[getOrCall(id, ctx)];
 
                 if (!data) {
                     return resolve(create(dateNow));

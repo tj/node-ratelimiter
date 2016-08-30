@@ -25,7 +25,7 @@ import adapterFactory from './redis';
             });
         });
 
-        it('should create a new entry executing id()', done => {
+        it('should create a new entry executing id (if a function)', done => {
             const idSpy = sandbox.spy();
             adapterFactory(db)(idSpy, 5, 2000).get();
 
@@ -36,7 +36,7 @@ import adapterFactory from './redis';
         describe('.newHit', () => {
             describe('.total', () => {
                 it('should represent the total limit per reset period', done => {
-                    const adapter = adapterFactory(db)(() => 'something', 5, 3600000);
+                    const adapter = adapterFactory(db)('something', 5, 3600000);
                     adapter.newHit()
                         .then(res => {
                             res.total.should.equal(5);
@@ -48,7 +48,7 @@ import adapterFactory from './redis';
 
             describe('.remaining', () => {
                 it('should represent the number of requests remaining in the reset period', done => {
-                    const adapter = adapterFactory(db)(() => 'something', 5, 10000);
+                    const adapter = adapterFactory(db)('something', 5, 10000);
                     adapter.newHit()
                     .then(res => {
                         res.remaining.should.equal(5);
@@ -68,7 +68,7 @@ import adapterFactory from './redis';
 
             describe('.reset', () => {
                 it('should represent the next reset time in UTC epoch seconds', done => {
-                    const adapter = adapterFactory(db)(() => 'something', 5, 60000);
+                    const adapter = adapterFactory(db)('something', 5, 60000);
                     adapter.newHit()
                     .then(res => {
                         const left = res.reset - (Date.now() / 1000);
@@ -81,7 +81,7 @@ import adapterFactory from './redis';
 
             describe('when the limit is exceeded', () => {
                 it('should retain .remaining at 0', done => {
-                    const adapter = adapterFactory(db)(() => 'something', 2, 3600000);
+                    const adapter = adapterFactory(db)('something', 2, 3600000);
                     adapter.newHit()
                     .then(res => {
                         res.remaining.should.equal(2);
@@ -103,7 +103,7 @@ import adapterFactory from './redis';
             describe('when the duration is exceeded', function() {
                 it('should reset', done => {
                     this.timeout(5000);
-                    const adapter = adapterFactory(db)(() => 'something', 2, 2000);
+                    const adapter = adapterFactory(db)('something', 2, 2000);
 
                     adapter.newHit()
                     .then(res => {
@@ -128,7 +128,7 @@ import adapterFactory from './redis';
 
             describe('when multiple successive calls are made', () => {
                 it('the next calls should not create again the limiter in Redis', done => {
-                    const adapter = adapterFactory(db)(() => 'something', 2, 10000);
+                    const adapter = adapterFactory(db)('something', 2, 10000);
 
                     adapter.newHit()
                     .then(res => {
@@ -144,7 +144,7 @@ import adapterFactory from './redis';
                 });
 
                 it('updating the count should keep all TTLs in sync', done => {
-                    const adapter = adapterFactory(db)(() => 'something', 2, 10000);
+                    const adapter = adapterFactory(db)('something', 2, 10000);
                     adapter.newHit(); // All good here.
                     adapter.newHit().then(() => {
                         db.multi()
@@ -166,7 +166,7 @@ import adapterFactory from './redis';
 
             describe('when trying to decrease before setting value', () => {
                 it('should create with ttl when trying to decrease', done => {
-                    const adapter = adapterFactory(db)(() => 'something', 2, 10000);
+                    const adapter = adapterFactory(db)('something', 2, 10000);
                     db.setex('limit:something:count', -1, 1, () => {
                         adapter.newHit()
                         .then(res => {
@@ -193,7 +193,7 @@ import adapterFactory from './redis';
                 const adapters = [];
 
                 for (let i = 0; i < clientsCount; ++i) {
-                    adapters.push(adapterFactory(redisModule.createClient())(() => 'something', max, 10000));
+                    adapters.push(adapterFactory(redisModule.createClient())('something', max, 10000));
                 }
 
                 it('should prevent race condition and properly set the expected value', done => {

@@ -21,13 +21,15 @@ function isFirstReplyNull(replies) {
         !replies[0];
 }
 
+const getOrCall = (x, ctx) => typeof x === 'function' ? x(ctx) : x;
+
 export default db => {
     assert(db, 'db required');
 
     return (id, max, duration, ctx = {}) => {
-        const countField = `limit:${id(ctx)}:count`;
-        const limitField = `limit:${id(ctx)}:limit`;
-        const resetField = `limit:${id(ctx)}:reset`;
+        const countField = `limit:${getOrCall(id, ctx)}:count`;
+        const limitField = `limit:${getOrCall(id, ctx)}:limit`;
+        const resetField = `limit:${getOrCall(id, ctx)}:reset`;
 
         const get = res => {
             if (!res[0] && res[0] !== 0) return null;
