@@ -72,7 +72,7 @@ describe('MemoryAdapter', () => {
         describe('when the duration is exceeded', function testDuration() {
             it('should reset', done => {
                 this.timeout(5000);
-                const adapter = adapterFactory()('foo', 2, 2000);
+                const adapter = adapterFactory()('foo', 2, 1000);
                 adapter.newHit().then(res => {
                     res.remaining.should.equal(2);
                 })
@@ -82,11 +82,12 @@ describe('MemoryAdapter', () => {
                     setTimeout(() => {
                         adapter.newHit().then(res2 => {
                             const left = res2.reset - (Date.now() / 1000);
-                            left.should.be.below(2);
+                            left.should.be.above(0);
+                            left.should.be.below(1);
                             res2.remaining.should.equal(2);
                             done();
-                        });
-                    }, 3000);
+                        }).catch(done);
+                    }, 1500);
                 })
                 .catch(done);
             });
