@@ -1,7 +1,21 @@
 import 'should';
 import adapterFactory from './memory';
+import sinon from 'sinon';
 
 describe('MemoryAdapter', () => {
+    let sandbox;
+    beforeEach(() => {
+        sandbox = sinon.sandbox.create();
+    });
+
+    it('should create a new entry executing id (if a function) in global dictionnary', done => {
+        const idSpy = sandbox.spy();
+        adapterFactory()(idSpy, 5, 2000).get();
+
+        idSpy.called.should.be.true();
+        done();
+    });
+
     describe('.newHit', () => {
         describe('.total', () => {
             it('should represent the total limit per reset period', done => {
@@ -83,7 +97,7 @@ describe('MemoryAdapter', () => {
                         adapter.newHit().then(res2 => {
                             const left = res2.reset - (Date.now() / 1000);
                             left.should.be.above(0);
-                            left.should.be.below(1);
+                            left.should.be.below(2);
                             res2.remaining.should.equal(2);
                             done();
                         }).catch(done);
@@ -92,5 +106,11 @@ describe('MemoryAdapter', () => {
                 .catch(done);
             });
         });
+    });
+
+    afterEach(() => {
+        if (sandbox) {
+            sandbox.restore();
+        }
     });
 });

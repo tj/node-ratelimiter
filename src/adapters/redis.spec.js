@@ -1,4 +1,5 @@
 import 'should';
+import sinon from 'sinon';
 import adapterFactory from './redis';
 
 // Uncomment the following line if you want to see
@@ -10,13 +11,26 @@ import adapterFactory from './redis';
     const db = redisModule.createClient();
 
     describe('RedisAdapter with ' + redisModuleName, () => {
+        let sandbox;
+        beforeEach(() => {
+            sandbox = sinon.sandbox.create();
+        });
+
         beforeEach(done => {
-            db.keys('limit:*', (err, keys) => {
+            db.keys('limit:something:*', (err, keys) => {
                 if (err) return done(err);
                 if (!keys.length) return done();
                 const args = keys.concat(done);
                 db.del.apply(db, args);
             });
+        });
+
+        it('should create a new entry executing id (if a function)', done => {
+            const idSpy = sandbox.spy();
+            adapterFactory(db)(idSpy, 5, 2000).get();
+
+            idSpy.called.should.be.true();
+            done();
         });
 
         describe('.newHit', () => {
@@ -212,6 +226,12 @@ import adapterFactory from './redis';
                     });
                 });
             });
+        });
+
+        afterEach(() => {
+            if (sandbox) {
+                sandbox.restore();
+            }
         });
     });
 });

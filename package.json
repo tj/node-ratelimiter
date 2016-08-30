@@ -23,7 +23,8 @@
     "ioredis": "1.9.0",
     "mocha": "*",
     "redis": "0.10.2",
-    "should": "*"
+    "should": "*",
+    "sinon": "^1.17.5"
   },
   "license": "MIT",
   "contributors": [
