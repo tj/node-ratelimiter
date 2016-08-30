@@ -14,7 +14,7 @@ export default () => {
 
         const reset = (data, dateNow) => {
             data.remaining = max;
-            data.reset = data.reset * 1000 - dateNow;
+            data.reset = (dateNow + duration) / 1000;
 
             return data;
         };
