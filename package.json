@@ -1,6 +1,6 @@
 {
   "name": "node-ratelimiter",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "repository": "marmelab/node-ratelimiter",
   "description": "Abstract rate limiter storing its data in redis or memory",
   "keywords": [
