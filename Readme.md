@@ -71,7 +71,7 @@ limiter.newHit(function(err, limit){
 
 # Adapters
 
-##B RedisAdapter
+## RedisAdapter
 
 Initialize a new adapter with:
 
@@ -83,7 +83,7 @@ var redisAdapter = Limiter.redisAdapter;
 var adapter = redisAdapter(redis.createClient());
 ```
 
-##B MemoryAdapter
+## MemoryAdapter
 
 This adapter is meant to be used in dev. **Do not use it in production**.
 
@@ -96,7 +96,7 @@ var memoryAdapter = Limiter.memoryAdapter;
 var adapter = memoryAdapter();
 ```
 
-##B NullAdapter
+## NullAdapter
 
 This adapter is meant to be used for tests only when you want to disable the rate limiting.
 
