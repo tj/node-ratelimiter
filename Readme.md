@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.org/tj/node-ratelimiter.svg)](https://travis-ci.org/tj/node-ratelimiter)
 
 ## Release Notes
-v3.1.0 - [#7](https://github.com/marmelab/node-ratelimiter/pull/7) - Fix memory adapter & [#8](https://github.com/marmelab/node-ratelimiter/pull/8) New id retrieval method (no breaking change)
+v3.1.0 - [#7](https://github.com/marmelab/node-ratelimiter/pull/7) - Fix memory adapter & [#8](https://github.com/marmelab/node-ratelimiter/pull/8) new id retrieval method (no breaking change)
 
 [v3.0.0](https://github.com/marmelab/node-ratelimiter/tree/v3.0.0) - Add multiple adapters support (redis, memory, null)
 
@@ -71,7 +71,7 @@ limiter.newHit(function(err, limit){
 
 # Adapters
 
-## RedisAdapter
+##B RedisAdapter
 
 Initialize a new adapter with:
 
@@ -83,7 +83,7 @@ var redisAdapter = Limiter.redisAdapter;
 var adapter = redisAdapter(redis.createClient());
 ```
 
-## MemoryAdapter
+##B MemoryAdapter
 
 This adapter is meant to be used in dev. **Do not use it in production**.
 
@@ -96,7 +96,7 @@ var memoryAdapter = Limiter.memoryAdapter;
 var adapter = memoryAdapter();
 ```
 
-## NullAdapter
+##B NullAdapter
 
 This adapter is meant to be used for tests only when you want to disable the rate limiting.
 
