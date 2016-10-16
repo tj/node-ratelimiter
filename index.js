@@ -50,8 +50,6 @@ Limiter.prototype.inspect = function () {
  * that expire after N seconds:
  *
  *  - limit:<id>:count
- *  - limit:<id>:limit
- *  - limit:<id>:reset
  *
  * @param {Function} fn
  * @api public
@@ -59,94 +57,93 @@ Limiter.prototype.inspect = function () {
 
 Limiter.prototype.get = function (fn) {
   var count = this.prefix + 'count';
-  var limit = this.prefix + 'limit';
-  var reset = this.prefix + 'reset';
   var duration = this.duration;
   var max = this.max;
   var db = this.db;
 
   function create() {
-    var ex = (Date.now() + duration) / 1000 | 0;
-
     db.multi()
-      .set([count, max, 'PX', duration, 'NX'])
-      .set([limit, max, 'PX', duration, 'NX'])
-      .set([reset, ex, 'PX', duration, 'NX'])
+      .set(count, max, 'PX', duration, 'NX')
       .exec(function (err, res) {
         if (err) return fn(err);
 
         // If the request has failed, it means the values already
         // exist in which case we need to get the latest values.
-        if (isFirstReplyNull(res)) return mget();
+        if (isReplyNull(res)) return get();
 
-        fn(null, {
-          total: max,
-          remaining: max,
-          reset: ex
+        db.pttl(count, function(err, data) {
+          if(err) return fn(err);
+          fn(null, {
+            total: max,
+            remaining: max,
+            // Adding Date.now to ensure change is non-breaking. Can be removed for more accuracy
+            // later. reset should also be in milliseconds (unlike now) for more accuracy
+            reset: (~~data + Date.now()) / 1000
+          });
         });
       });
   }
 
   function decr(res) {
-    var n = ~~res[0];
-    var max = ~~res[1];
-    var ex = ~~res[2];
-    var dateNow = Date.now();
+    var n = ~~res;
 
     if (n <= 0) return done();
 
     function done() {
-      fn(null, {
-        total: max,
-        remaining: n < 0 ? 0 : n,
-        reset: ex
+      db.pttl(count, function(err, data) {
+        if(err) return fn(err);
+        fn(null, {
+          total: max,
+          remaining: n < 0 ? 0 : n,
+          // Adding Date.now to ensure change is non-breaking. Can be removed for more accuracy
+          // later. reset should also be in milliseconds (unlike now) for more accuracy
+          reset: (~~data + Date.now()) / 1000
+        });
       });
     }
 
     db.multi()
-      .set([count, n - 1, 'PX', ex * 1000 - dateNow, 'XX'])
-      .pexpire([limit, ex * 1000 - dateNow])
-      .pexpire([reset, ex * 1000 - dateNow])
+      .decr(count)
       .exec(function (err, res) {
         if (err) return fn(err);
-        if (isFirstReplyNull(res)) return mget();
+        if (isReplyNull(res)) return get();
         n = n - 1;
         done();
       });
   }
 
-  function mget() {
+  function get() {
     db.watch([count], function (err) {
       if (err) return fn(err);
-      db.mget([count, limit, reset], function (err, res) {
+      db.get(count, function (err, res) {
         if (err) return fn(err);
-        if (!res[0] && res[0] !== 0) return create();
+        if (res === null) return create();
 
         decr(res);
       });
     });
   }
-
-  mget();
+  
+  get();
 };
 
 /**
- * Check whether the first item of multi replies is null,
+ * Check whether the first item of multi reply is null,
  * works with ioredis and node_redis
  *
- * @param {Array} replies
+ * @param {Array} reply
  * @return {Boolean}
  * @api private
  */
 
-function isFirstReplyNull(replies) {
-  if (!replies) {
+function isReplyNull(reply) {
+  if (!reply) {
     return true;
   }
 
-  return Array.isArray(replies[0]) ?
+  return Array.isArray(reply[0]) ?
     // ioredis
-    !replies[0][1] :
+    !reply[0][1] :
     // node_redis
-    !replies[0];
+    !reply[0];
 }
