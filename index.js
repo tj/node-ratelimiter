@@ -71,15 +71,12 @@ Limiter.prototype.get = function (fn) {
         // exist in which case we need to get the latest values.
         if (isReplyNull(res)) return get();
 
-        db.pttl(count, function(err, data) {
-          if(err) return fn(err);
-          fn(null, {
-            total: max,
-            remaining: max,
-            // Adding Date.now to ensure change is non-breaking. Can be removed for more accuracy
-            // later. reset should also be in milliseconds (unlike now) for more accuracy
-            reset: (~~data + Date.now()) / 1000
-          });
+        fn(null, {
+          total: max,
+          remaining: max,
+          // Adding Date.now to ensure change is non-breaking. Can be removed for more accuracy
+          // later. reset should also be in milliseconds (unlike now) for more accuracy
+          reset: (duration + Date.now()) / 1000
         });
       });
   }
