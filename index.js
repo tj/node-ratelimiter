@@ -111,7 +111,7 @@ Limiter.prototype.get = function(fn) {
       .exec(function(err, res) {
         if (err) return fn(err);
         if (isFirstReplyNull(res)) return mget();
-        n = n - 1;
+        n = Array.isArray(res[0]) ? ~~res[0][1] : ~~res[0];
         done();
       });
   }
