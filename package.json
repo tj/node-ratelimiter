@@ -9,6 +9,9 @@
     "limiter",
     "limit"
   ],
+  "scripts" : {
+    "test" : "mocha"
+  },
   "dependencies": {},
   "devDependencies": {
     "ioredis": "1.15.1",
