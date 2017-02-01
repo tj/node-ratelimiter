@@ -1,11 +1,12 @@
 require('should');
-var Limiter = require('..');
+var Limiter = require('..'),
+  async = require('async');
 
 // Uncomment the following line if you want to see
 // debug logs from the node-redis module.
 //redis.debug_mode = true;
 
-['redis', 'ioredis'].forEach(function (redisModuleName) {
+['redis', 'ioredis'].forEach(function(redisModuleName) {
   var redisModule = require(redisModuleName);
   var db = require(redisModuleName).createClient();
   describe('Limiter with ' + redisModuleName, function() {
@@ -146,7 +147,7 @@ var Limiter = require('..');
             .pttl(['limit:something:count'])
             .pttl(['limit:something:limit'])
             .pttl(['limit:something:reset'])
-            .exec(function (err, res) {
+            .exec(function(err, res) {
               if (err) return done(err);
               var ttlCount = (typeof res[0] === 'number') ? res[0] : res[0][1];
               var ttlLimit = (typeof res[1] === 'number') ? res[1] : res[1][1];
@@ -211,7 +212,8 @@ var Limiter = require('..');
 
             if (err) {
               done(err);
-            } else {
+            }
+            else {
               responses.forEach(function(res) {
                 res[1].remaining.should.equal(left < 0 ? 0 : left);
                 left--;
@@ -230,7 +232,8 @@ var Limiter = require('..');
         limits[0].get(function(err, res) {
           if (err) {
             done(err);
-          } else {
+          }
+          else {
             res.remaining.should.equal(left--);
 
             // Simulate multiple concurrent requests.
@@ -241,5 +244,31 @@ var Limiter = require('..');
         });
       });
     });
+
+    describe('when limiter is called in parallel by multiple clients', function() {
+      var max = 6,
+        limiter;
+
+      limiter = new Limiter({
+        duration: 10000,
+        max: max,
+        id: 'asyncsomething',
+        db: redisModule.createClient()
+      });
+
+      it('should set the count properly without race conditions', function(done) {
+        async.times(max, function(n, next) {
+            limiter.get(next);
+          },
+          function(errs, limits) {
+
+            limits.forEach(function(limit) {
+              limit.remaining.should.equal(max--);
+            });
+            done();
+
+          });
+      });
+    })
   });
 });

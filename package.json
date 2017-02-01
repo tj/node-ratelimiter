@@ -9,11 +9,12 @@
     "limiter",
     "limit"
   ],
-  "scripts" : {
-    "test" : "mocha"
+  "scripts": {
+    "test": "mocha"
   },
   "dependencies": {},
   "devDependencies": {
+    "async": "2.1.4",
     "ioredis": "1.15.1",
     "mocha": "*",
     "redis": "2.6.0-1",
