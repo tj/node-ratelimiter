@@ -65,14 +65,30 @@ Limiter.prototype.get = function (fn) {
   var max = this.max;
   var db = this.db;
 
+  function getFirstError(res) {
+    if (!Array.isArray(res)) return;
+
+    for (var i = 0; i < res.length; i++) {
+      if (Array.isArray(res[i])) {
+        for (var j = 0; j < res[i].length; j++) {
+          if (res[i][j] instanceof Error) return res[i][j];
+        }
+      } else if (res[i] instanceof Error) {
+        return res[i];
+      }
+    }
+  }
+
   function create() {
     var ex = (Date.now() + duration) / 1000 | 0;
 
     db.multi()
       .set([count, max, 'PX', duration, 'NX'])
-      .set([limit, max, 'PX', duration, 'NX'])
-      .set([reset, ex, 'PX', duration, 'NX'])
+      .set([limit, max, 'PX', duration])
+      .set([reset, ex, 'PX', duration])
       .exec(function (err, res) {
+        if (err) return fn(err);
+        err = getFirstError(res);
         if (err) return fn(err);
 
         // If the request has failed, it means the values already
@@ -108,6 +124,8 @@ Limiter.prototype.get = function (fn) {
       .pexpire([limit, ex * 1000 - dateNow])
       .pexpire([reset, ex * 1000 - dateNow])
       .exec(function (err, res) {
+        if (err) return fn(err);
+        err = getFirstError(res);
         if (err) return fn(err);
         if (isFirstReplyNull(res)) return mget();
         n = n - 1;
