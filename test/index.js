@@ -94,7 +94,7 @@ var Limiter = require('..');
       it('should reset', function(done) {
         this.timeout(5000);
         var limit = new Limiter({
-          duration: 2000,
+          duration: 500,
           max: 2,
           id: 'something',
           db: db
@@ -110,7 +110,7 @@ var Limiter = require('..');
                 res.remaining.should.equal(2);
                 done();
               });
-            }, 3000);
+            }, 1000);
           });
         });
       });

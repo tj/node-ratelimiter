@@ -27,7 +27,7 @@ function Limiter(opts) {
   assert(this.db, '.db required');
   this.max = opts.max || 2500;
   this.duration = opts.duration || 3600000;
-  this.prefix = 'limit:' + this.id + ':';
+  this.key = 'limit:' + this.id;
 }
 
 /**
@@ -46,21 +46,17 @@ Limiter.prototype.inspect = function () {
 /**
  * Get values and header / status code and invoke `fn(err, info)`.
  *
- * redis is populated with the following keys
+ * redis is populated with the following key
  * that expire after N seconds:
  *
- *  - limit:<id>:count
- *  - limit:<id>:limit
- *  - limit:<id>:reset
+ *  - limit:<id> (count, limit, reset)
  *
  * @param {Function} fn
  * @api public
  */
 
 Limiter.prototype.get = function (fn) {
-  var count = this.prefix + 'count';
-  var limit = this.prefix + 'limit';
-  var reset = this.prefix + 'reset';
+  var key = this.key;
   var duration = this.duration;
   var max = this.max;
   var db = this.db;
@@ -69,9 +65,10 @@ Limiter.prototype.get = function (fn) {
     var ex = (Date.now() + duration) / 1000 | 0;
 
     db.multi()
-      .set([count, max, 'PX', duration, 'NX'])
-      .set([limit, max, 'PX', duration, 'NX'])
-      .set([reset, ex, 'PX', duration, 'NX'])
+      .hsetnx([key, 'count', max])
+      .hsetnx([key, 'limit', max])
+      .hsetnx([key, 'reset', ex])
+      .pexpire([key, duration])
       .exec(function (err, res) {
         if (err) return fn(err);
 
@@ -88,42 +85,43 @@ Limiter.prototype.get = function (fn) {
   }
 
   function decr(res) {
-    var n = ~~res[0];
-    var max = ~~res[1];
-    var ex = ~~res[2];
-    var dateNow = Date.now();
+    var n = parseInt(res.count);
+    var max = parseInt(res.limit);
+    var ex = parseInt(res.reset);
 
-    if (n <= 0) return done();
+    if (n === 0) return done(0);
 
-    function done() {
+    function done(n) {
       fn(null, {
         total: max,
-        remaining: n < 0 ? 0 : n,
+        remaining: n,
         reset: ex
       });
     }
 
+    // setTimeout(function() {
     db.multi()
-      .set([count, n - 1, 'PX', ex * 1000 - dateNow, 'XX'])
-      .pexpire([limit, ex * 1000 - dateNow])
-      .pexpire([reset, ex * 1000 - dateNow])
+      .hincrby([key, 'count', -1])
+      .pexpire([key, ex * 1000 - Date.now()])
       .exec(function (err, res) {
         if (err) return fn(err);
         if (isFirstReplyNull(res)) return mget();
-        n = n - 1;
-        done();
+        done(n - 1);
       });
+    // }, 1000)
   }
 
   function mget() {
-    db.watch([count], function (err) {
+    db.watch([key], function (err) {
       if (err) return fn(err);
-      db.mget([count, limit, reset], function (err, res) {
+      db.persist([key], function (err, res) {
         if (err) return fn(err);
-        if (!res[0] && res[0] !== 0) return create();
-
-        decr(res);
-      });
+        if (res === 0) return create();
+        db.hgetall([key], function (err, res) {
+          if (err) return fn(err);
+          decr(res);
+        });
+      })
     });
   }
 
