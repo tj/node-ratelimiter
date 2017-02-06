@@ -212,8 +212,8 @@ var Limiter = require('..'),
 
             if (err) {
               done(err);
-            }
-            else {
+            } else {
+              responses.sort(function (r1, r2) { return r1[1].remaining < r2[1].remaining; });
               responses.forEach(function(res) {
                 res[1].remaining.should.equal(left < 0 ? 0 : left);
                 left--;
