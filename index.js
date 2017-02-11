@@ -36,11 +36,11 @@ function Limiter(opts) {
  * @api public
  */
 
-Limiter.prototype.inspect = function () {
-  return '<Limiter id='
-    + this.id + ', duration='
-    + this.duration + ', max='
-    + this.max + '>';
+Limiter.prototype.inspect = function() {
+  return '<Limiter id=' +
+    this.id + ', duration=' +
+    this.duration + ', max=' +
+    this.max + '>';
 };
 
 /**
@@ -57,7 +57,7 @@ Limiter.prototype.inspect = function () {
  * @api public
  */
 
-Limiter.prototype.get = function (fn) {
+Limiter.prototype.get = function(fn) {
   var count = this.prefix + 'count';
   var limit = this.prefix + 'limit';
   var reset = this.prefix + 'reset';
@@ -72,7 +72,7 @@ Limiter.prototype.get = function (fn) {
       .set([count, max, 'PX', duration, 'NX'])
       .set([limit, max, 'PX', duration, 'NX'])
       .set([reset, ex, 'PX', duration, 'NX'])
-      .exec(function (err, res) {
+      .exec(function(err, res) {
         if (err) return fn(err);
 
         // If the request has failed, it means the values already
@@ -104,21 +104,22 @@ Limiter.prototype.get = function (fn) {
     }
 
     db.multi()
-      .set([count, n - 1, 'PX', ex * 1000 - dateNow, 'XX'])
+      .decr(count)
+      .pexpire([count, ex * 1000 - dateNow])
       .pexpire([limit, ex * 1000 - dateNow])
       .pexpire([reset, ex * 1000 - dateNow])
-      .exec(function (err, res) {
+      .exec(function(err, res) {
         if (err) return fn(err);
         if (isFirstReplyNull(res)) return mget();
-        n = n - 1;
+        n = Array.isArray(res[0]) ? ~~res[0][1] : ~~res[0];
         done();
       });
   }
 
   function mget() {
-    db.watch([count], function (err) {
+    db.watch([count], function(err) {
       if (err) return fn(err);
-      db.mget([count, limit, reset], function (err, res) {
+      db.mget([count, limit, reset], function(err, res) {
         if (err) return fn(err);
         if (!res[0] && res[0] !== 0) return create();
 

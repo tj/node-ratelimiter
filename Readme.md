@@ -5,13 +5,15 @@
 [![Build Status](https://travis-ci.org/tj/node-ratelimiter.svg)](https://travis-ci.org/tj/node-ratelimiter)
 
 ## Release Notes
-[v2.1.3](https://github.com/tj/node-ratelimiter/tree/v2.1.3) - [#22](/../../pull/22) by [@coderhaoxin](https://github.com/coderhaoxin) - Dev dependencies versions bump
+[v2.2.0](https://github.com/tj/node-ratelimiter/tree/v2.2.0) - [#30](/../../pull/30) by [@kp96](https://github.com/kp96) - Race condition when using `async.times`.
 
-[v2.1.2](https://github.com/tj/node-ratelimiter/tree/v2.1.2) - [#17](/../../pull/17) by [@waleedsamy](https://github.com/waleedsamy) - Add Travis CI support
+[v2.1.3](https://github.com/tj/node-ratelimiter/tree/v2.1.3) - [#22](/../../pull/22) by [@coderhaoxin](https://github.com/coderhaoxin) - Dev dependencies versions bump.
 
-[v2.1.1](https://github.com/tj/node-ratelimiter/tree/v2.1.1) - [#13](/../../pull/13) by [@kwizzn](https://github.com/kwizzn) - Fixes out-of-sync TTLs after running decr()
+[v2.1.2](https://github.com/tj/node-ratelimiter/tree/v2.1.2) - [#17](/../../pull/17) by [@waleedsamy](https://github.com/waleedsamy) - Add Travis CI support.
 
-[v2.1.0](https://github.com/tj/node-ratelimiter/tree/v2.1.0) - [#12](/../../pull/12) by [@luin](https://github.com/luin) - Adding support for ioredis
+[v2.1.1](https://github.com/tj/node-ratelimiter/tree/v2.1.1) - [#13](/../../pull/13) by [@kwizzn](https://github.com/kwizzn) - Fixes out-of-sync TTLs after running decr().
+
+[v2.1.0](https://github.com/tj/node-ratelimiter/tree/v2.1.0) - [#12](/../../pull/12) by [@luin](https://github.com/luin) - Adding support for ioredis.
 
 [v2.0.1](https://github.com/tj/node-ratelimiter/tree/v2.0.1) - [#9](/../../pull/9) by [@ruimarinho](https://github.com/ruimarinho) - Update redis commands to use array notation.
 
