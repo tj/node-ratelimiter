@@ -1,6 +1,6 @@
 {
   "name": "ratelimiter",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "repository": "visionmedia/node-ratelimiter",
   "description": "abstract rate limiter backed by redis",
   "keywords": [
