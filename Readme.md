@@ -5,6 +5,8 @@
 [![Build Status](https://travis-ci.org/tj/node-ratelimiter.svg)](https://travis-ci.org/tj/node-ratelimiter)
 
 ## Release Notes
+[v3.0.2](https://github.com/tj/node-ratelimiter/tree/v3.0.0) - [#33](/../../pull/33) by [@promag](https://github.com/promag) - Use sorted set to limit with moving window.
+
 [v2.2.0](https://github.com/tj/node-ratelimiter/tree/v2.2.0) - [#30](/../../pull/30) by [@kp96](https://github.com/kp96) - Race condition when using `async.times`.
 
 [v2.1.3](https://github.com/tj/node-ratelimiter/tree/v2.1.3) - [#22](/../../pull/22) by [@coderhaoxin](https://github.com/coderhaoxin) - Dev dependencies versions bump.
