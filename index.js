@@ -3,6 +3,7 @@
  */
 
 var assert = require('assert');
+var microtime = require('./microtime');
 
 /**
  * Expose `Limiter`.
@@ -27,7 +28,7 @@ function Limiter(opts) {
   assert(this.db, '.db required');
   this.max = opts.max || 2500;
   this.duration = opts.duration || 3600000;
-  this.prefix = 'limit:' + this.id + ':';
+  this.key = 'limit:' + this.id;
 }
 
 /**
@@ -47,88 +48,38 @@ Limiter.prototype.inspect = function() {
  * Get values and header / status code and invoke `fn(err, info)`.
  *
  * redis is populated with the following keys
- * that expire after N seconds:
+ * that expire after N milliseconds:
  *
- *  - limit:<id>:count
- *  - limit:<id>:limit
- *  - limit:<id>:reset
+ *  - limit:<id>
  *
  * @param {Function} fn
  * @api public
  */
 
-Limiter.prototype.get = function(fn) {
-  var count = this.prefix + 'count';
-  var limit = this.prefix + 'limit';
-  var reset = this.prefix + 'reset';
-  var duration = this.duration;
-  var max = this.max;
+Limiter.prototype.get = function (fn) {
   var db = this.db;
+  var duration = this.duration;
+  var key = this.key;
+  var max = this.max;
+  var now = microtime.now();
+  var start = now - duration * 1000;
 
-  function create() {
-    var ex = (Date.now() + duration) / 1000 | 0;
-
-    db.multi()
-      .set([count, max, 'PX', duration, 'NX'])
-      .set([limit, max, 'PX', duration, 'NX'])
-      .set([reset, ex, 'PX', duration, 'NX'])
-      .exec(function(err, res) {
-        if (err) return fn(err);
-
-        // If the request has failed, it means the values already
-        // exist in which case we need to get the latest values.
-        if (isFirstReplyNull(res)) return mget();
-
-        fn(null, {
-          total: max,
-          remaining: max,
-          reset: ex
-        });
-      });
-  }
-
-  function decr(res) {
-    var n = ~~res[0];
-    var max = ~~res[1];
-    var ex = ~~res[2];
-    var dateNow = Date.now();
-
-    if (n <= 0) return done();
-
-    function done() {
-      fn(null, {
-        total: max,
-        remaining: n < 0 ? 0 : n,
-        reset: ex
-      });
-    }
-
-    db.multi()
-      .decr(count)
-      .pexpire([count, ex * 1000 - dateNow])
-      .pexpire([limit, ex * 1000 - dateNow])
-      .pexpire([reset, ex * 1000 - dateNow])
-      .exec(function(err, res) {
-        if (err) return fn(err);
-        if (isFirstReplyNull(res)) return mget();
-        n = Array.isArray(res[0]) ? ~~res[0][1] : ~~res[0];
-        done();
-      });
-  }
-
-  function mget() {
-    db.watch([count], function(err) {
+  db.multi()
+    .zremrangebyscore([key, 0, start])
+    .zcard([key])
+    .zadd([key, now, now])
+    .zrange([key, 0, 0])
+    .pexpire([key, duration])
+    .exec(function (err, res) {
       if (err) return fn(err);
-      db.mget([count, limit, reset], function(err, res) {
-        if (err) return fn(err);
-        if (!res[0] && res[0] !== 0) return create();
-
-        decr(res);
+      var count = parseInt(Array.isArray(res[0]) ? res[1][1] : res[1]);
+      var oldest = parseInt(Array.isArray(res[0]) ? res[3][1] : res[3]);
+      fn(null, {
+        remaining: count < max ? max - count : 0,
+        reset: Math.floor((oldest + duration) / 1000000),
+        total: max
       });
     });
-  }
-
-  mget();
 };
 
 /**
