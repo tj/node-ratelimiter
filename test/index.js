@@ -64,7 +64,7 @@ var Limiter = require('..'),
         });
         limit.get(function(err, res) {
           var left = res.reset - (Date.now() / 1000);
-          left.should.be.below(60);
+          left.should.be.below(60).and.be.greaterThan(0);
           done();
         });
       });
