@@ -76,7 +76,7 @@ Limiter.prototype.get = function (fn) {
       var oldest = parseInt(Array.isArray(res[0]) ? res[3][1] : res[3]);
       fn(null, {
         remaining: count < max ? max - count : 0,
-        reset: Math.floor((oldest + duration) / 1000000),
+        reset: Math.floor((oldest + duration * 1000) / 1000000),
         total: max
       });
     });
