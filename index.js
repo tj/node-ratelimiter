@@ -85,24 +85,3 @@ class Limiter {
  */
 
 module.exports = Limiter;
-
-/**
- * Check whether the first item of multi replies is null,
- * works with ioredis and node_redis
- *
- * @param {Array} replies
- * @return {Boolean}
- * @api private
- */
-
-function isFirstReplyNull(replies) {
-  if (!replies) {
-    return true;
-  }
-
-  return Array.isArray(replies[0]) ?
-    // ioredis
-    !replies[0][1] :
-    // node_redis
-    !replies[0];
-}
