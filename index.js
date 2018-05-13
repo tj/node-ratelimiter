@@ -2,14 +2,9 @@
  * Module dependencies.
  */
 
-var assert = require('assert');
-var microtime = require('./microtime');
+const assert = require('assert');
+const microtime = require('./microtime');
 
-/**
- * Expose `Limiter`.
- */
-
-module.exports = Limiter;
 
 /**
  * Initialize a new limiter with `opts`:
@@ -20,85 +15,73 @@ module.exports = Limiter;
  * @param {Object} opts
  * @api public
  */
-
-function Limiter(opts) {
-  this.id = opts.id;
-  this.db = opts.db;
-  assert(this.id, '.id required');
-  assert(this.db, '.db required');
-  this.max = opts.max || 2500;
-  this.duration = opts.duration || 3600000;
-  this.key = 'limit:' + this.id;
-}
-
-/**
- * Inspect implementation.
- *
- * @api public
- */
-
-Limiter.prototype.inspect = function() {
-  return '<Limiter id=' +
-    this.id + ', duration=' +
-    this.duration + ', max=' +
-    this.max + '>';
-};
-
-/**
- * Get values and header / status code and invoke `fn(err, info)`.
- *
- * redis is populated with the following keys
- * that expire after N milliseconds:
- *
- *  - limit:<id>
- *
- * @param {Function} fn
- * @api public
- */
-
-Limiter.prototype.get = function (fn) {
-  var db = this.db;
-  var duration = this.duration;
-  var key = this.key;
-  var max = this.max;
-  var now = microtime.now();
-  var start = now - duration * 1000;
-
-  db.multi()
-    .zremrangebyscore([key, 0, start])
-    .zcard([key])
-    .zadd([key, now, now])
-    .zrange([key, 0, 0])
-    .pexpire([key, duration])
-    .exec(function (err, res) {
-      if (err) return fn(err);
-      var count = parseInt(Array.isArray(res[0]) ? res[1][1] : res[1]);
-      var oldest = parseInt(Array.isArray(res[0]) ? res[3][1] : res[3]);
-      fn(null, {
-        remaining: count < max ? max - count : 0,
-        reset: Math.floor((oldest + duration * 1000) / 1000000),
-        total: max
-      });
-    });
-};
-
-/**
- * Check whether the first item of multi replies is null,
- * works with ioredis and node_redis
- *
- * @param {Array} replies
- * @return {Boolean}
- * @api private
- */
-
-function isFirstReplyNull(replies) {
-  if (!replies) {
-    return true;
+class Limiter {
+  constructor(opts) {
+    this.id = opts.id;
+    this.db = opts.db;
+    assert(this.id, '.id required');
+    assert(this.db, '.db required');
+    this.max = opts.max || 2500;
+    this.duration = opts.duration || 3600000;
+    this.key = 'limit:' + this.id;
   }
 
-  return Array.isArray(replies[0]) ?
-    // ioredis
-    !replies[0][1] :
-    // node_redis
-    !replies[0];
+  /**
+   * Inspect implementation.
+   *
+   * @api public
+   */
+  inspect() {
+    return '<Limiter id=' +
+      this.id + ', duration=' +
+      this.duration + ', max=' +
+      this.max + '>';
+  }
+
+  /**
+   * Get values and header / status code and invoke `fn(err, info)`.
+   *
+   * redis is populated with the following keys
+   * that expire after N milliseconds:
+   *
+   *  - limit:<id>
+   *
+   * @param {Function} fn
+   * @api public
+   */
+  get() {
+    const db = this.db;
+    const duration = this.duration;
+    const key = this.key;
+    const max = this.max;
+    const now = microtime.now();
+    const start = now - duration * 1000;
+
+    return new Promise((resolve, reject) => {
+      db.multi()
+        .zremrangebyscore([key, 0, start])
+        .zcard([key])
+        .zadd([key, now, now])
+        .zrange([key, 0, 0])
+        .pexpire([key, duration])
+        .exec((err, res) => {
+          if (err) return reject(err);
+
+          const count = parseInt(Array.isArray(res[0]) ? res[1][1] : res[1]);
+          const oldest = parseInt(Array.isArray(res[0]) ? res[3][1] : res[3]);
+
+          resolve({
+            remaining: count < max ? max - count : 0,
+            reset: Math.floor((oldest + duration * 1000) / 1000000),
+            total: max
+          });
+        });
+    });
+  }
 }
+
+/**
+ * Expose `Limiter`.
+ */
+
+module.exports = Limiter;
