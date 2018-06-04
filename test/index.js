@@ -70,6 +70,23 @@ var Limiter = require('..'),
       });
     });
 
+    describe('.resetMs', function() {
+      it('should represent the next reset time in UTC epoch milliseconds', function(done) {
+        var limit = new Limiter({
+          max: 5,
+          duration: 60000,
+          id: 'something',
+          db: db
+        });
+        limit.get(function(err, res) {
+          var left = res.resetMs - Date.now();
+          Number.isInteger(left).should.be.true;
+          left.should.be.within(0, 60000);
+          done();
+        });
+      });
+    });
+
     describe('when the limit is exceeded', function() {
       it('should retain .remaining at 0', function(done) {
         var limit = new Limiter({

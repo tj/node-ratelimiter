@@ -60,7 +60,8 @@ limit.get(function(err, limit){
 ## Result Object
  - `total` - `max` value
  - `remaining` - number of calls left in current `duration` without decreasing current `get`
- - `reset` - time since epoch in seconds that the rate limiting period will end (or already ended)
+ - `reset` - time since epoch in seconds at which the rate limiting period will end (or already ended)
+ - `resetMs` - time since epoch in milliseconds at which the rate limiting period will end (or already ended)
 
 ## Options
 
