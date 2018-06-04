@@ -77,6 +77,7 @@ Limiter.prototype.get = function (fn) {
       fn(null, {
         remaining: count < max ? max - count : 0,
         reset: Math.floor((oldest + duration * 1000) / 1000000),
+        resetMs: Math.floor((oldest + duration * 1000) / 1000),
         total: max
       });
     });
