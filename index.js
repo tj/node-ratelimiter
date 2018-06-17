@@ -1,104 +1,45 @@
-/**
- * Module dependencies.
- */
+'use strict'
 
-var assert = require('assert');
-var microtime = require('./microtime');
+const universalify = require('universalify')
+const assert = require('assert')
 
-/**
- * Expose `Limiter`.
- */
+const microtime = require('./microtime')
 
-module.exports = Limiter;
+module.exports = class Limiter {
+  constructor ({id, db, max = 2500, duration = 3600000}) {
+    this.id = id
+    this.db = db
+    assert(this.id, '.id required')
+    assert(this.db, '.db required')
+    this.max = max
+    this.duration = duration
+    this.key = `limit:${this.id}`
 
-/**
- * Initialize a new limiter with `opts`:
- *
- *  - `id` identifier being limited
- *  - `db` redis connection instance
- *
- * @param {Object} opts
- * @api public
- */
+    this.get = universalify.fromCallback(cb => {
+      const { db, duration, key, max } = this
+      const now = microtime.now()
+      const start = now - duration * 1000
 
-function Limiter(opts) {
-  this.id = opts.id;
-  this.db = opts.db;
-  assert(this.id, '.id required');
-  assert(this.db, '.db required');
-  this.max = opts.max || 2500;
-  this.duration = opts.duration || 3600000;
-  this.key = 'limit:' + this.id;
-}
-
-/**
- * Inspect implementation.
- *
- * @api public
- */
-
-Limiter.prototype.inspect = function() {
-  return '<Limiter id=' +
-    this.id + ', duration=' +
-    this.duration + ', max=' +
-    this.max + '>';
-};
-
-/**
- * Get values and header / status code and invoke `fn(err, info)`.
- *
- * redis is populated with the following keys
- * that expire after N milliseconds:
- *
- *  - limit:<id>
- *
- * @param {Function} fn
- * @api public
- */
-
-Limiter.prototype.get = function (fn) {
-  var db = this.db;
-  var duration = this.duration;
-  var key = this.key;
-  var max = this.max;
-  var now = microtime.now();
-  var start = now - duration * 1000;
-
-  db.multi()
-    .zremrangebyscore([key, 0, start])
-    .zcard([key])
-    .zadd([key, now, now])
-    .zrange([key, 0, 0])
-    .pexpire([key, duration])
-    .exec(function (err, res) {
-      if (err) return fn(err);
-      var count = parseInt(Array.isArray(res[0]) ? res[1][1] : res[1]);
-      var oldest = parseInt(Array.isArray(res[0]) ? res[3][1] : res[3]);
-      fn(null, {
-        remaining: count < max ? max - count : 0,
-        reset: Math.floor((oldest + duration * 1000) / 1000000),
-        total: max
-      });
-    });
-};
-
-/**
- * Check whether the first item of multi replies is null,
- * works with ioredis and node_redis
- *
- * @param {Array} replies
- * @return {Boolean}
- * @api private
- */
-
-function isFirstReplyNull(replies) {
-  if (!replies) {
-    return true;
+      db.multi()
+        .zrange([key, 0, start, 'WITHSCORES'])
+        .zcard([key])
+        .zadd([key, now, now])
+        .zrange([key, 0, 0])
+        .pexpire([key, duration])
+        .exec(function (err, res) {
+          if (err) return cb(err)
+          const count = parseInt(Array.isArray(res[0]) ? res[1][1] : res[1])
+          const oldest = parseInt(Array.isArray(res[0]) ? res[3][1] : res[3])
+          return cb(null, {
+            remaining: count < max ? max - count : 0,
+            reset: Math.floor((oldest + duration * 1000) / 1000000),
+            total: max
+          })
+        })
+    })
   }
 
-  return Array.isArray(replies[0]) ?
-    // ioredis
-    !replies[0][1] :
-    // node_redis
-    !replies[0];
+  inspect () {
+    return `<Limiter id=${this.id}, duration=${this.duration}, max=${this.max}>`
+  }
 }

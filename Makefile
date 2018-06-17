@@ -4,6 +4,7 @@ test:
 		--require should \
 		--reporter dot \
 		--timeout 10s \
-		--bail
+		--bail \
+		--exit
 
 .PHONY: test

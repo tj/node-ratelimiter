@@ -1,13 +1,10 @@
 language: node_js
 node_js:
-  - "0.10"
-  - "0.12"
-  - "4"
-  - "6"
+  - "node"
+  - "lts/*"
 services:
   - redis-server
 install:
-- npm install
+  - npm install
 script:
-- make test
-
+  - make test

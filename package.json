@@ -10,18 +10,29 @@
     "limit"
   ],
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "lint": "standard",
+    "pretest": "npm run lint"
   },
-  "dependencies": {},
   "devDependencies": {
-    "async": "2.1.4",
-    "ioredis": "1.15.1",
-    "mocha": "*",
-    "redis": "2.6.0-1",
-    "should": "*"
+    "async": "latest",
+    "ioredis": "latest",
+    "mocha": "latest",
+    "should": "latest",
+    "standard": "latest"
+  },
+  "standard": {
+    "globals": [
+      "it",
+      "describe",
+      "beforeEach"
+    ]
   },
   "license": "MIT",
   "contributors": [
     "Francois-Guillaume Ribreau <npm@fgribreau.com>"
-  ]
+  ],
+  "dependencies": {
+    "universalify": "~0.1.1"
+  }
 }
