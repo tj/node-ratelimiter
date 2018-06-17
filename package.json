@@ -16,8 +16,9 @@
   "devDependencies": {
     "async": "2.1.4",
     "ioredis": "3",
-    "mocha": "*",
-    "should": "*"
+    "mocha": "latest",
+    "should": "latest",
+    "standard": "latest"
   },
   "license": "MIT",
   "contributors": [
