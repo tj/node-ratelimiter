@@ -31,5 +31,8 @@
   "license": "MIT",
   "contributors": [
     "Francois-Guillaume Ribreau <npm@fgribreau.com>"
-  ]
+  ],
+  "dependencies": {
+    "universalify": "~0.1.1"
+  }
 }
