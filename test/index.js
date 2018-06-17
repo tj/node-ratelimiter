@@ -6,7 +6,7 @@ var Limiter = require('..'),
 // debug logs from the node-redis module.
 //redis.debug_mode = true;
 
-['redis', 'ioredis'].forEach(function(redisModuleName) {
+['ioredis'].forEach(function(redisModuleName) {
   var redisModule = require(redisModuleName);
   var db = require(redisModuleName).createClient();
   describe('Limiter with ' + redisModuleName, function() {

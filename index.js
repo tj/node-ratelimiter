@@ -65,7 +65,7 @@ Limiter.prototype.get = function (fn) {
   var start = now - duration * 1000;
 
   db.multi()
-    .zremrangebyscore([key, 0, start])
+    .zrange([key, 0, start, 'WITHSCORES'])
     .zcard([key])
     .zadd([key, now, now])
     .zrange([key, 0, 0])
