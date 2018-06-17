@@ -15,8 +15,8 @@
     "pretest": "npm run lint"
   },
   "devDependencies": {
-    "async": "2.1.4",
-    "ioredis": "3",
+    "async": "latest",
+    "ioredis": "latest",
     "mocha": "latest",
     "should": "latest",
     "standard": "latest"
