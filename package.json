@@ -10,15 +10,23 @@
     "limit"
   ],
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "lint": "standard",
+    "pretest": "npm run lint"
   },
-  "dependencies": {},
   "devDependencies": {
     "async": "2.1.4",
     "ioredis": "3",
     "mocha": "latest",
     "should": "latest",
     "standard": "latest"
+  },
+  "standard": {
+    "globals": [
+      "it",
+      "describe",
+      "beforeEach"
+    ]
   },
   "license": "MIT",
   "contributors": [

@@ -1,18 +1,16 @@
-/**
- * Module dependencies.
- */
+'use strict'
 
 const assert = require('assert')
 const microtime = require('./microtime')
 
 module.exports = class Limiter {
-  constructor (opts) {
-    this.id = opts.id
-    this.db = opts.db
+  constructor ({id, db, max = 2500, duration = 3600000}) {
+    this.id = id
+    this.db = db
     assert(this.id, '.id required')
     assert(this.db, '.db required')
-    this.max = opts.max || 2500
-    this.duration = opts.duration || 3600000
+    this.max = max
+    this.duration = duration
     this.key = 'limit:' + this.id
   }
 
@@ -21,12 +19,12 @@ module.exports = class Limiter {
   }
 
   get (fn) {
-    var db = this.db
-    var duration = this.duration
-    var key = this.key
-    var max = this.max
-    var now = microtime.now()
-    var start = now - duration * 1000
+    const db = this.db
+    const duration = this.duration
+    const key = this.key
+    const max = this.max
+    const now = microtime.now()
+    const start = now - duration * 1000
 
     db.multi()
       .zrange([key, 0, start, 'WITHSCORES'])
@@ -36,9 +34,9 @@ module.exports = class Limiter {
       .pexpire([key, duration])
       .exec(function (err, res) {
         if (err) return fn(err)
-        var count = parseInt(Array.isArray(res[0]) ? res[1][1] : res[1])
-        var oldest = parseInt(Array.isArray(res[0]) ? res[3][1] : res[3])
-        fn(null, {
+        const count = parseInt(Array.isArray(res[0]) ? res[1][1] : res[1])
+        const oldest = parseInt(Array.isArray(res[0]) ? res[3][1] : res[3])
+        return fn(null, {
           remaining: count < max ? max - count : 0,
           reset: Math.floor((oldest + duration * 1000) / 1000000),
           total: max
