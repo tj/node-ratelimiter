@@ -1,6 +1,8 @@
 # ratelimiter
 
-  Rate limiter for Node.js backed by Redis.
+Rate limiter for Node.js backed by Redis.
+  
+> **NOTE**: Promise version available at [async-ratelimiter](https://github.com/microlinkhq/async-ratelimiter).
 
 [![Build Status](https://travis-ci.org/tj/node-ratelimiter.svg)](https://travis-ci.org/tj/node-ratelimiter)
 
