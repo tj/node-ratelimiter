@@ -10,7 +10,7 @@
     "limit"
   ],
   "scripts": {
-    "test": "mocha"
+    "test": "mocha --exit"
   },
   "dependencies": {},
   "devDependencies": {
