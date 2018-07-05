@@ -113,17 +113,18 @@ var Limiter = require('..'),
       });
 
       it('should return an increasing reset time after each call', function (done) {
-        var originalResetMs;
-        limit.get(function(err, res) {
-          originalResetMs = res.resetMs;
+        setTimeout(function () {
+          limit.get(function(err, res) {
+            var originalResetMs = res.resetMs;
 
-          setTimeout(function() {
-            limit.get(function (err, res) {
-              res.resetMs.should.be.greaterThan(originalResetMs);
-              done();
-            });
-          }, 200);
-        });
+            setTimeout(function() {
+              limit.get(function (err, res) {
+                res.resetMs.should.be.greaterThan(originalResetMs);
+                done();
+              });
+            }, 10);
+          });
+        }, 10);
       });
     });
 
