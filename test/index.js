@@ -88,22 +88,41 @@ var Limiter = require('..'),
     });
 
     describe('when the limit is exceeded', function() {
-      it('should retain .remaining at 0', function(done) {
-        var limit = new Limiter({
+      var limit;
+
+      beforeEach(function (done) {
+        limit = new Limiter({
           max: 2,
           id: 'something',
           db: db
         });
+
+        limit.get(function() {
+          limit.get(function() {
+            done();
+          });
+        });
+      });
+
+      it('should retain .remaining at 0', function(done) {
         limit.get(function(err, res) {
-          res.remaining.should.equal(2);
-          limit.get(function(err, res) {
-            res.remaining.should.equal(1);
-            limit.get(function(err, res) {
-              // function caller should reject this call
-              res.remaining.should.equal(0);
+          // function caller should reject this call
+          res.remaining.should.equal(0);
+          done();
+        });
+      });
+
+      it('should return an increasing reset time after each call', function (done) {
+        var originalResetMs;
+        limit.get(function(err, res) {
+          originalResetMs = res.resetMs;
+
+          setTimeout(function() {
+            limit.get(function (err, res) {
+              res.resetMs.should.be.greaterThan(originalResetMs);
               done();
             });
-          });
+          }, 200);
         });
       });
     });
