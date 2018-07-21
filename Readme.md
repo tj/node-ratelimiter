@@ -7,6 +7,8 @@ Rate limiter for Node.js backed by Redis.
 [![Build Status](https://travis-ci.org/tj/node-ratelimiter.svg)](https://travis-ci.org/tj/node-ratelimiter)
 
 ## Release Notes
+[v3.2.0](https://github.com/tj/node-ratelimiter/tree/v3.2.0) - [#44](/../../pull/44) by [@xdmnl](https://github.com/xdmnl) - Return accurate reset time for each limited call.
+
 [v3.1.0](https://github.com/tj/node-ratelimiter/tree/v3.1.0) - [#40](/../../pull/40) by [@ronjouch](https://github.com/ronjouch) - Add reset milliseconds to the result object.
 
 [v3.0.2](https://github.com/tj/node-ratelimiter/tree/v3.0.0) - [#33](/../../pull/33) by [@promag](https://github.com/promag) - Use sorted set to limit with moving window.
