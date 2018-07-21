@@ -69,15 +69,21 @@ Limiter.prototype.get = function (fn) {
     .zcard([key])
     .zadd([key, now, now])
     .zrange([key, 0, 0])
+    .zrange([key, -max, -max])
     .pexpire([key, duration])
     .exec(function (err, res) {
       if (err) return fn(err);
-      var count = parseInt(Array.isArray(res[0]) ? res[1][1] : res[1]);
-      var oldest = parseInt(Array.isArray(res[0]) ? res[3][1] : res[3]);
+
+      var isIoRedis = Array.isArray(res[0]);
+      var count = parseInt(isIoRedis ? res[1][1] : res[1]);
+      var oldest = parseInt(isIoRedis ? res[3][1] : res[3]);
+      var oldestInRange = parseInt(isIoRedis ? res[4][1] : res[4]);
+      var resetMicro = (Number.isNaN(oldestInRange) ? oldest : oldestInRange) + duration * 1000;
+
       fn(null, {
         remaining: count < max ? max - count : 0,
-        reset: Math.floor((oldest + duration * 1000) / 1000000),
-        resetMs: Math.floor((oldest + duration * 1000) / 1000),
+        reset: Math.floor(resetMicro / 1000000),
+        resetMs: Math.floor(resetMicro / 1000),
         total: max
       });
     });
