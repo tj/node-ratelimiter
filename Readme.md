@@ -75,6 +75,7 @@ limit.get(function(err, limit){
  - `db` - redis connection instance
  - `max` - max requests within `duration` [2500]
  - `duration` - of limit in milliseconds [3600000]
+ - `tidy` - of limit in milliseconds [3600000]
 
 # License
 

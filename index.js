@@ -24,6 +24,7 @@ module.exports = Limiter;
 function Limiter(opts) {
   this.id = opts.id;
   this.db = opts.db;
+  this.tidy = opts.tidy || false;
   assert(this.id, '.id required');
   assert(this.db, '.db required');
   this.max = opts.max || 2500;
@@ -37,7 +38,7 @@ function Limiter(opts) {
  * @api public
  */
 
-Limiter.prototype.inspect = function() {
+Limiter.prototype.inspect = function () {
   return '<Limiter id=' +
     this.id + ', duration=' +
     this.duration + ', max=' +
@@ -58,19 +59,24 @@ Limiter.prototype.inspect = function() {
 
 Limiter.prototype.get = function (fn) {
   var db = this.db;
+  var tidy = this.key;
   var duration = this.duration;
   var key = this.key;
   var max = this.max;
   var now = microtime.now();
   var start = now - duration * 1000;
-
-  db.multi()
-    .zremrangebyscore([key, 0, start])
-    .zcard([key])
-    .zadd([key, now, now])
-    .zrange([key, 0, 0])
-    .zrange([key, -max, -max])
-    .pexpire([key, duration])
+  var operations = [
+    ['zremrangebyscore', key, 0, start],
+    ['zcard', key],
+    ['zadd', key, now, now],
+    ['zrange', key, 0, 0],
+    ['zrange', key, -max, -max],
+    ['pexpire', key, duration],
+  ]
+  if (tidy) {
+    operations.splice(5, 0, ['zremrangebyrank', key, 0, -(max + 1)])
+  }
+  db.multi(operations)
     .exec(function (err, res) {
       if (err) return fn(err);
 
