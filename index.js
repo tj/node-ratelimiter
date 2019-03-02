@@ -70,6 +70,7 @@ Limiter.prototype.get = function (fn) {
     .zadd([key, now, now])
     .zrange([key, 0, 0])
     .zrange([key, -max, -max])
+    .zremrangebyrank([key, 0, -(max + 1)])
     .pexpire([key, duration])
     .exec(function (err, res) {
       if (err) return fn(err);
