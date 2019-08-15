@@ -1,6 +1,6 @@
 require('should');
 var Limiter = require('..'),
-  async = require('async');
+    async = require('async');
 
 // Uncomment the following line if you want to see
 // debug logs from the node-redis module.
@@ -153,11 +153,13 @@ var Limiter = require('..'),
 
     describe('when the limit is exceeded', function() {
       var limit;
-
+      var id = 'something';
+      var key = 'limit:' + id;
+      var max = 2;
       beforeEach(function (done) {
         limit = new Limiter({
-          max: 2,
-          id: 'something',
+          max: max,
+          id: id,
           db: db
         });
 
@@ -190,15 +192,39 @@ var Limiter = require('..'),
           });
         }, 10);
       });
+
+      it('should increasing size of key in redis', function (done) {
+        setTimeout(function () {
+          limit.get(function(err, res) {
+            var originalResetMs = res.resetMs;
+
+            setTimeout(function() {
+              limit.get(function (err, res) {
+                res.resetMs.should.be.greaterThan(originalResetMs);
+                db.multi().zcard(key).exec(function (err, res) {
+                  var isIoRedis = Array.isArray(res[0]);
+                  var count = parseInt(isIoRedis ? res[0][1] : res[0]);
+                  count.should.be.greaterThan(max);
+                  done();
+                });
+
+              });
+            }, 10);
+          });
+        }, 10);
+      });
     });
 
     describe('when the limit is exceeded and tidy is true', function () {
       var limit;
+      var id = 'something';
+      var key = 'limit:' + id;
+      var max = 2;
 
       beforeEach(function (done) {
         limit = new Limiter({
-          max: 2,
-          id: 'something',
+          max: max,
+          id: id,
           db: db,
           tidy: true
         });
@@ -227,6 +253,27 @@ var Limiter = require('..'),
               limit.get(function (err, res) {
                 res.resetMs.should.be.greaterThan(originalResetMs);
                 done();
+              });
+            }, 10);
+          });
+        }, 10);
+      });
+
+      it('should not increasing size of key in redis', function (done) {
+        setTimeout(function () {
+          limit.get(function(err, res) {
+            var originalResetMs = res.resetMs;
+
+            setTimeout(function() {
+              limit.get(function (err, res) {
+                res.resetMs.should.be.greaterThan(originalResetMs);
+                db.multi().zcard(key).exec(function (err, res) {
+                  var isIoRedis = Array.isArray(res[0]);
+                  var count = parseInt(isIoRedis ? res[0][1] : res[0]);
+                  count.should.be.equal(max);
+                  done();
+                });
+
               });
             }, 10);
           });
@@ -330,18 +377,18 @@ var Limiter = require('..'),
         limit.get(function(err, res) {}); // All good here.
         limit.get(function(err, res) {
           db.multi()
-            .pttl(['limit:something:count'])
-            .pttl(['limit:something:limit'])
-            .pttl(['limit:something:reset'])
-            .exec(function(err, res) {
-              if (err) return done(err);
-              var ttlCount = (typeof res[0] === 'number') ? res[0] : res[0][1];
-              var ttlLimit = (typeof res[1] === 'number') ? res[1] : res[1][1];
-              var ttlReset = (typeof res[2] === 'number') ? res[2] : res[2][1];
-              ttlLimit.should.equal(ttlCount);
-              ttlReset.should.equal(ttlCount);
-              done();
-            });
+              .pttl(['limit:something:count'])
+              .pttl(['limit:something:limit'])
+              .pttl(['limit:something:reset'])
+              .exec(function(err, res) {
+                if (err) return done(err);
+                var ttlCount = (typeof res[0] === 'number') ? res[0] : res[0][1];
+                var ttlLimit = (typeof res[1] === 'number') ? res[1] : res[1][1];
+                var ttlReset = (typeof res[2] === 'number') ? res[2] : res[2][1];
+                ttlLimit.should.equal(ttlCount);
+                ttlReset.should.equal(ttlCount);
+                done();
+              });
         });
       });
       it('updating the count should keep all TTLs in sync, when tidy is true', function (done) {
@@ -355,18 +402,18 @@ var Limiter = require('..'),
         limit.get(function (err, res) {}); // All good here.
         limit.get(function (err, res) {
           db.multi()
-            .pttl(['limit:something:count'])
-            .pttl(['limit:something:limit'])
-            .pttl(['limit:something:reset'])
-            .exec(function (err, res) {
-              if (err) return done(err);
-              var ttlCount = (typeof res[0] === 'number') ? res[0] : res[0][1];
-              var ttlLimit = (typeof res[1] === 'number') ? res[1] : res[1][1];
-              var ttlReset = (typeof res[2] === 'number') ? res[2] : res[2][1];
-              ttlLimit.should.equal(ttlCount);
-              ttlReset.should.equal(ttlCount);
-              done();
-            });
+              .pttl(['limit:something:count'])
+              .pttl(['limit:something:limit'])
+              .pttl(['limit:something:reset'])
+              .exec(function (err, res) {
+                if (err) return done(err);
+                var ttlCount = (typeof res[0] === 'number') ? res[0] : res[0][1];
+                var ttlLimit = (typeof res[1] === 'number') ? res[1] : res[1][1];
+                var ttlReset = (typeof res[2] === 'number') ? res[2] : res[2][1];
+                ttlLimit.should.equal(ttlCount);
+                ttlReset.should.equal(ttlCount);
+                done();
+              });
         });
       });
     });
@@ -417,9 +464,9 @@ var Limiter = require('..'),
 
     describe('when multiple concurrent clients modify the limit', function() {
       var clientsCount = 7,
-        max = 5,
-        left = max,
-        limits = [];
+          max = 5,
+          left = max,
+          limits = [];
 
       for (var i = 0; i < clientsCount; ++i) {
         limits.push(new Limiter({
@@ -479,9 +526,9 @@ var Limiter = require('..'),
 
     describe('when multiple concurrent clients modify the limit and tidy is true', function () {
       var clientsCount = 7,
-        max = 5,
-        left = max,
-        limits = [];
+          max = 5,
+          left = max,
+          limits = [];
 
       for (var i = 0; i < clientsCount; ++i) {
         limits.push(new Limiter({
@@ -543,7 +590,7 @@ var Limiter = require('..'),
 
     describe('when limiter is called in parallel by multiple clients', function() {
       var max = 6,
-        limiter;
+          limiter;
 
       limiter = new Limiter({
         duration: 10000,
@@ -554,43 +601,43 @@ var Limiter = require('..'),
 
       it('should set the count properly without race conditions', function(done) {
         async.times(max, function(n, next) {
-            limiter.get(next);
-          },
-          function(errs, limits) {
+              limiter.get(next);
+            },
+            function(errs, limits) {
 
-            limits.forEach(function(limit) {
-              limit.remaining.should.equal(max--);
+              limits.forEach(function(limit) {
+                limit.remaining.should.equal(max--);
+              });
+              done();
+
             });
-            done();
-
-          });
       });
     })
 
-     describe('when limiter is called in parallel by multiple clients and tidy is true', function () {
-       var max = 6,
-         limiter;
+    describe('when limiter is called in parallel by multiple clients and tidy is true', function () {
+      var max = 6,
+          limiter;
 
-       limiter = new Limiter({
-         duration: 10000,
-         max: max,
-         id: 'asyncsomething',
-         db: redisModule.createClient()
-       });
+      limiter = new Limiter({
+        duration: 10000,
+        max: max,
+        id: 'asyncsomething',
+        db: redisModule.createClient()
+      });
 
-       it('should set the count properly without race conditions', function (done) {
-         async.times(max, function (n, next) {
-             limiter.get(next);
-           },
-           function (errs, limits) {
+      it('should set the count properly without race conditions', function (done) {
+        async.times(max, function (n, next) {
+              limiter.get(next);
+            },
+            function (errs, limits) {
 
-             limits.forEach(function (limit) {
-               limit.remaining.should.equal(max--);
-             });
-             done();
+              limits.forEach(function (limit) {
+                limit.remaining.should.equal(max--);
+              });
+              done();
 
-           });
-       });
-     })
+            });
+      });
+    })
   });
 });

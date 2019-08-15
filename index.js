@@ -59,7 +59,7 @@ Limiter.prototype.inspect = function() {
 
 Limiter.prototype.get = function (fn) {
   var db = this.db;
-  var tidy = this.key;
+  var tidy = this.tidy;
   var duration = this.duration;
   var key = this.key;
   var max = this.max;
