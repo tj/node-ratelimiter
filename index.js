@@ -24,7 +24,6 @@ module.exports = Limiter;
 function Limiter(opts) {
   this.id = opts.id;
   this.db = opts.db;
-  this.tidy = opts.tidy || false;
   assert(this.id, '.id required');
   assert(this.db, '.db required');
   this.max = opts.max || 2500;
@@ -59,7 +58,6 @@ Limiter.prototype.inspect = function() {
 
 Limiter.prototype.get = function (fn) {
   var db = this.db;
-  var tidy = this.key;
   var duration = this.duration;
   var key = this.key;
   var max = this.max;
@@ -73,9 +71,8 @@ Limiter.prototype.get = function (fn) {
     ['zrange', key, -max, -max],
     ['pexpire', key, duration],
   ]
-  if (tidy) {
-    operations.splice(5, 0, ['zremrangebyrank', key, 0, -(max + 1)])
-  }
+  
+  operations.splice(5, 0, ['zremrangebyrank', key, 0, -(max + 1)])
   db.multi(operations)
     .exec(function (err, res) {
       if (err) return fn(err);
