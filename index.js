@@ -69,10 +69,10 @@ Limiter.prototype.get = function (fn) {
     ['zadd', key, now, now],
     ['zrange', key, 0, 0],
     ['zrange', key, -max, -max],
+    ['zremrangebyrank', key, 0, -(max + 1)],
     ['pexpire', key, duration],
   ]
-  
-  operations.splice(5, 0, ['zremrangebyrank', key, 0, -(max + 1)])
+
   db.multi(operations)
     .exec(function (err, res) {
       if (err) return fn(err);
