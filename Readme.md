@@ -36,7 +36,7 @@ Rate limiter for Node.js backed by Redis.
 ## Requirements
 
 - Redis 2.6.12+
-- Node 6.0.0+
+- Node 8.0.0+
 
 ## Installation
 
