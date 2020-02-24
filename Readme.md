@@ -7,7 +7,9 @@ Rate limiter for Node.js backed by Redis.
 [![Build Status](https://travis-ci.org/tj/node-ratelimiter.svg)](https://travis-ci.org/tj/node-ratelimiter)
 
 ## Release Notes
-[v3.3.1](https://github.com/tj/node-ratelimiter/tree/v3.3.1) - [#51](/../../issues/47) - Remove tidy option as it's always true.
+[v3.4.1](https://github.com/tj/node-ratelimiter/tree/v3.4.1) - [#55](/../../issues/55) by [@barwin](https://github.com/barwin) - Remove splice operation.
+
+[v3.3.1](https://github.com/tj/node-ratelimiter/tree/v3.3.1) - [#51](/../../issues/51) - Remove tidy option as it's always true.
 
 [v3.3.0](https://github.com/tj/node-ratelimiter/tree/v3.3.0) - [#47](/../../pull/47) by [@penghap](https://github.com/penghap) - Add tidy option to clean old records upon saving new records. Drop support in node 4.
 
